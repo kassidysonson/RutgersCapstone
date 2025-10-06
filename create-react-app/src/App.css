@@ -1,42 +1,83 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+/* --- NAVBAR STYLES --- */
+.navbar {
+  width: 1322px;
+  height: 68.67px;
+  padding: 16px 37px 0.67px 37px;
+  background: rgba(255, 255, 255, 0.6);
+  border-bottom: 0.67px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.navbar-inner {
+  align-self: stretch;
+  height: 36px;
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* --- LEFT SIDE (LOGO) --- */
+.navbar-left {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 8px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.logo-box {
+  width: 32px;
+  height: 32px;
+  background: #030213;
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.card {
-  padding: 2em;
+.logo-letter {
+  color: white;
+  font-size: 16px;
+  font-family: Arial, sans-serif;
+  font-weight: 700;
+  line-height: 24px;
 }
 
-.read-the-docs {
-  color: #888;
+.logo-text {
+  color: #0a0a0a;
+  font-size: 20px;
+  font-family: Arial, sans-serif;
+  font-weight: 700;
+  line-height: 28px;
 }
+
+/* --- RIGHT SIDE (NAV LINKS) --- */
+.navbar-links {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 24px;
+}
+
+.nav-link {
+  color: #0a0a0a;
+  font-size: 16px;
+  font-family: Arial, sans-serif;
+  font-weight: 400;
+  line-height: 24px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.nav-link:hover {
+  color: #3b3bff;
+}
+
+/* --- MAIN CONTENT --- */
+.main-content {
+  padding: 20px;
+}
+
