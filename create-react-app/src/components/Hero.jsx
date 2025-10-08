@@ -3,7 +3,7 @@ import './Hero.css';
 
 const Hero = () => {
   return (
-    <section className="hero">
+    <section id="hero" className="hero">
       <div className="hero-container">
         <div className="hero-content">
           {/* Left Column - Text and Buttons */}
@@ -80,17 +80,11 @@ const Hero = () => {
           {/* Right Column - Image */}
           <div className="hero-right">
             <div className="hero-image">
-              <div className="workspace-setup">
-                <div className="laptop">
-                  <div className="laptop-screen"></div>
-                  <div className="laptop-base"></div>
-                </div>
-                <div className="coffee-cup"></div>
-                <div className="monitor"></div>
-                <div className="phone"></div>
-                <div className="remote"></div>
-                <div className="notebook"></div>
-              </div>
+              <img 
+                src="/src/assets/hero-image.png" 
+                alt="StudyCollab workspace pic"
+                className="hero-img"
+              />
             </div>
           </div>
         </div>

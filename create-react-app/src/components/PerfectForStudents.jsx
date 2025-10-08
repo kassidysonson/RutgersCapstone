@@ -3,7 +3,7 @@ import './PerfectForStudents.css';
 
 const PerfectForStudents = () => {
   return (
-    <section className="perfect-for-students">
+    <section id="perfect-for-students" className="perfect-for-students">
       <div className="perfect-for-students-container">
         <h2 className="perfect-for-students-title">Perfect for Every Student</h2>
         <p className="perfect-for-students-description">
