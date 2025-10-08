@@ -48,7 +48,8 @@ const Header = () => {
           <button className="btn-signup">Sign Up</button>
         </div>
       </div>
-    </header>
+        </header>
   );
 };
 
+export default Header;
