@@ -1,0 +1,50 @@
+.bottom-section {
+  padding: 80px 20px;
+  background-color: #ffffff;
+  text-align: center;
+}
+
+.bottom-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.bottom-title {
+  font-size: 36px;
+  font-weight: 700;
+  color: #000000;
+  margin: 0 0 16px 0;
+  font-family: sans-serif;
+}
+
+.bottom-description {
+  font-size: 18px;
+  color: #666666;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .bottom-section {
+    padding: 60px 20px;
+  }
+  
+  .bottom-title {
+    font-size: 28px;
+  }
+  
+  .bottom-description {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .bottom-title {
+    font-size: 24px;
+  }
+  
+  .bottom-description {
+    font-size: 14px;
+  }
+}
