@@ -3,7 +3,7 @@ import './Hero.css';
 
 const Hero = () => {
   return (
-    <section id="hero" className="hero">
+    <section className="hero">
       <div className="hero-container">
         <div className="hero-content">
           {/* Left Column - Text and Buttons */}
@@ -80,14 +80,11 @@ const Hero = () => {
           {/* Right Column - Image */}
           <div className="hero-right">
             <div className="hero-image">
-              <div className="hero-placeholder">
-                <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                  <circle cx="8.5" cy="8.5" r="1.5"/>
-                  <polyline points="21,15 16,10 5,21"/>
-                </svg>
-                <p>Add your hero image here</p>
-              </div>
+              <img 
+                src="/src/assets/hero-image.png" 
+                alt="StudyCollab workspace setup with laptop, coffee, and study materials"
+                className="hero-img"
+              />
             </div>
           </div>
         </div>
