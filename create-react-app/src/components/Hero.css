@@ -144,12 +144,29 @@
   position: relative;
 }
 
-.hero-img {
+.hero-placeholder {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   border-radius: 12px;
+  color: #666666;
+  text-align: center;
+  padding: 20px;
+}
+
+.hero-placeholder svg {
+  margin-bottom: 16px;
+  opacity: 0.6;
+}
+
+.hero-placeholder p {
+  font-size: 14px;
+  margin: 0;
+  opacity: 0.8;
 }
 
 /* Responsive Design */
