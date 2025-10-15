@@ -10,14 +10,15 @@ const Header = () => {
           <div className="logo-icon">
             <span className="logo-s">S</span>
           </div>
-          <span className="logo-text">StudyCollab</span>
+          <span className="logo-text">JoinUp</span>
         </div>
 
         {/* Navigation */}
         <nav className="nav">
-          <a href="#hero" className="nav-link">Home</a>
+          <a href="/" className="nav-link">Home</a>
           <a href="#perfect-for-students" className="nav-link">For Students</a>
           <a href="#how-it-works" className="nav-link">How it Works</a>
+          <a href="/dashboard/5" className="nav-link">Dashboard</a>
         </nav>
 
         {/* Search Bar */}
@@ -37,13 +38,6 @@ const Header = () => {
 
         {/* Action Buttons */}
         <div className="header-actions">
-          <button className="btn-post-project">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-            Post Project
-          </button>
           <button className="btn-login">Log In</button>
           <button className="btn-signup">Sign Up</button>
         </div>

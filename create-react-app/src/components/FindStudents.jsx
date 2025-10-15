@@ -73,6 +73,21 @@ const FindStudents = () => {
       projectsCompleted: 15,
       hourlyRate: 35,
       profileImage: "DK"
+    },
+    {
+      id: 5,
+      name: "Galathara Kahanda",
+      major: "Computer Science",
+      year: "Graduate",
+      location: "Newark, NJ",
+      rating: 5.0,
+      reviewCount: 3,
+      description: " My research lies at the intersection of AI, ML, and cybersecurity, with the overarching goal of developing intelligent, adaptive, and robust systems that can operate securely in adversarial environments.",
+      skills: ["React", "Python", "UI/UX Design", "Machine Learning"],
+      availability: "20 hrs/week",
+      projectsCompleted: 3,
+      hourlyRate: 25,
+      profileImage: "GK"
     }
   ];
 

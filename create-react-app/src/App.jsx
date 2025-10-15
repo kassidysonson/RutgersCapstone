@@ -1,21 +1,20 @@
 import React from 'react';
 import './App.css';
+import { Routes, Route } from 'react-router-dom';
 import Header from './components/Header.jsx';
-import Hero from './components/Hero.jsx';
-import HowItWorks from './components/HowItWorks.jsx';
-import FindStudents from './components/FindStudents.jsx';
-import PerfectForStudents from './components/PerfectForStudents.jsx';
-import BottomSection from './components/BottomSection.jsx';
+import Home from './components/Home.jsx';
+import Dashboard from './components/Dashboard.jsx';
+import PostProject from './components/PostProject.jsx';
 
 function App() {
   return (
     <div className="App">
       <Header />
-      <Hero />
-      <HowItWorks />
-      <PerfectForStudents />
-      <FindStudents />
-      <BottomSection />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/dashboard/:id" element={<Dashboard />} />
+        <Route path="/post-project" element={<PostProject />} />
+      </Routes>
     </div>
   );
 }

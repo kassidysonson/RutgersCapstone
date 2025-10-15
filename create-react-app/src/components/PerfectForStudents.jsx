@@ -7,7 +7,7 @@ const PerfectForStudents = () => {
       <div className="perfect-for-students-container">
         <h2 className="perfect-for-students-title">Perfect for Every Student</h2>
         <p className="perfect-for-students-description">
-          Whether you're looking to earn, learn, or build, StudyCollab has something for you
+          Whether you're looking to earn, learn, or build, JoinUp has something for you
         </p>
         
         <div className="perfect-for-students-cards">

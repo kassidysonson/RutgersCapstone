@@ -5,7 +5,7 @@ const HowItWorks = () => {
   return (
     <section id="how-it-works" className="how-it-works">
       <div className="how-it-works-container">
-        <h2 className="how-it-works-title">How StudyCollab Works</h2>
+        <h2 className="how-it-works-title">How JoinUp Works</h2>
         <p className="how-it-works-description">
           A simple platform designed to connect students and create opportunities for everyone
         </p>
