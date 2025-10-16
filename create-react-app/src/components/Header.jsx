@@ -7,10 +7,8 @@ const Header = () => {
       <div className="header-container">
         {/* Logo */}
         <div className="logo">
-          <div className="logo-icon">
-            <span className="logo-s">S</span>
-          </div>
-          <span className="logo-text">JoinUp</span>
+          <img src="/src/assets/newlogo.svg" alt="JoinUp Logo" className="logo-svg" />
+          
         </div>
 
         {/* Navigation */}
