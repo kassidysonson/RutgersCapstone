@@ -7,7 +7,7 @@ const Header = () => {
       <div className="header-container">
         {/* Logo */}
         <div className="logo">
-          <img src="/src/assets/newlogo.svg" alt="JoinUp Logo" className="logo-svg" />
+          <img src="/src/assets/logo.svg" alt="JoinUp Logo" className="logo-svg" />
           
         </div>
 
