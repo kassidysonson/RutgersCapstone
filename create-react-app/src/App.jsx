@@ -5,6 +5,7 @@ import Header from './components/Header.jsx';
 import Home from './components/Home.jsx';
 import Dashboard from './components/Dashboard.jsx';
 import PostProject from './components/PostProject.jsx';
+import StudentProfile from './components/StudentProfile.jsx';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/dashboard/:id" element={<Dashboard />} />
         <Route path="/post-project" element={<PostProject />} />
+        <Route path="/profile/:id" element={<StudentProfile />} />
       </Routes>
     </div>
   );

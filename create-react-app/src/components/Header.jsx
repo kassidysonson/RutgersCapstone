@@ -16,7 +16,6 @@ const Header = () => {
           <a href="/" className="nav-link">Home</a>
           <a href="#perfect-for-students" className="nav-link">For Students</a>
           <a href="#how-it-works" className="nav-link">How it Works</a>
-          <a href="/dashboard/5" className="nav-link">Dashboard</a>
         </nav>
 
         {/* Search Bar */}
@@ -36,6 +35,12 @@ const Header = () => {
 
         {/* Action Buttons */}
         <div className="header-actions">
+          <a href="/dashboard/5" className="btn-dashboard">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </a>
           <button className="btn-login">Log In</button>
           <button className="btn-signup">Sign Up</button>
         </div>

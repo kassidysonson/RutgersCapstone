@@ -16,8 +16,6 @@ const Dashboard = ({ userId = 5 }) => {
     saved: 0,
     active: 2,
     posted: 2,
-    totalEarnings: 1000,
-    thisMonthDelta: 400,
   };
 
   const appliedProjects = [
@@ -26,7 +24,6 @@ const Dashboard = ({ userId = 5 }) => {
       title: 'E-commerce Mobile App Development',
       company: 'ShopFlow Startup',
       appliedDate: 'Applied Nov 1, 2024',
-      budget: '$2,000 - $3,500',
       due: 'Dec 15, 2024',
       skills: ['React Native', 'JavaScript', 'API Integration'],
       members: [{ name: 'SW', initials: 'SW' }],
@@ -39,7 +36,6 @@ const Dashboard = ({ userId = 5 }) => {
       title: 'Brand Identity Design Package',
       company: 'TechVision',
       appliedDate: 'Applied Oct 15, 2024',
-      budget: '$800 - $1,200',
       due: 'Nov 30, 2024',
       skills: ['Logo Design', 'Branding', 'Adobe Illustrator'],
       members: [{ name: 'JD', initials: 'JD' }],
@@ -56,7 +52,6 @@ const Dashboard = ({ userId = 5 }) => {
       postedDate: 'Posted Nov 20, 2024',
       applicants: 12,
       description: 'Need a developer to build a social media scheduling platform',
-      budget: '$3,000 - $5,000',
       due: 'Feb 15, 2025',
       skills: ['React', 'Node.js', 'MongoDB', 'API Integration'],
       selectedStudents: [{ name: 'Alex Chen', initials: 'AC' }, { name: 'Sarah Kim', initials: 'SK' }],
@@ -69,7 +64,6 @@ const Dashboard = ({ userId = 5 }) => {
       postedDate: 'Posted Nov 18, 2024',
       applicants: 8,
       description: 'Looking for a creative designer for our fitness app',
-      budget: '$1,200 - $2,000',
       due: 'Jan 10, 2025',
       skills: ['Figma', 'Mobile Design', 'User Research', 'Prototyping'],
       selectedStudents: [],
@@ -112,14 +106,6 @@ const Dashboard = ({ userId = 5 }) => {
             <div className="stat-title">Active Projects</div>
             <div className="stat-value">{stats.active}</div>
             <div className="stat-hint">Currently working</div>
-          </div>
-          <div className="stat-card earnings">
-            <div className="stat-title">Total Earnings</div>
-            <div className="earn-row">
-              <div className="currency">$</div>
-              <div className="stat-value">{stats.totalEarnings.toLocaleString()}</div>
-            </div>
-            <div className="stat-hint">+${stats.thisMonthDelta} this month</div>
           </div>
         </div>
 
@@ -165,10 +151,6 @@ const Dashboard = ({ userId = 5 }) => {
 
               <div className="project-meta">
                 <div className="meta-group">
-                  <div className="meta-item">
-                    <span className="meta-label">Budget:</span>
-                    <span className="meta-value">{p.budget}</span>
-                  </div>
                   <div className="meta-item">
                     <span className="meta-label">Due:</span>
                     <span className="meta-value">{p.due}</span>
@@ -230,10 +212,6 @@ const Dashboard = ({ userId = 5 }) => {
 
               <div className="project-meta">
                 <div className="meta-group">
-                  <div className="meta-item">
-                    <span className="meta-label">Budget:</span>
-                    <span className="meta-value">{p.budget}</span>
-                  </div>
                   <div className="meta-item">
                     <span className="meta-label">Due:</span>
                     <span className="meta-value">{p.due}</span>

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import './FindStudents.css';
 
 const FindStudents = () => {
   const [filters, setFilters] = useState({
-    hourlyRate: [10, 70],
     experienceLevel: [],
     academicYear: [],
     major: [],
@@ -11,7 +11,7 @@ const FindStudents = () => {
     availability: []
   });
 
-  const [activeFilters, setActiveFilters] = useState(['React', '$15-25/hr']);
+  const [activeFilters, setActiveFilters] = useState(['React']);
 
   const students = [
     {
@@ -26,7 +26,6 @@ const FindStudents = () => {
       skills: ["React", "Python", "UI/UX Design", "Machine Learning"],
       availability: "20 hrs/week",
       projectsCompleted: 8,
-      hourlyRate: 25,
       profileImage: "SC"
     },
     {
@@ -41,7 +40,7 @@ const FindStudents = () => {
       skills: ["Marketing", "Content Writing", "Social Media", "Analytics"],
       availability: "15 hrs/week",
       projectsCompleted: 12,
-      hourlyRate: 20,
+      
       profileImage: "MJ"
     },
     {
@@ -56,7 +55,7 @@ const FindStudents = () => {
       skills: ["Figma", "Adobe Creative Suite", "Branding", "Web Design"],
       availability: "25 hrs/week",
       projectsCompleted: 5,
-      hourlyRate: 18,
+     
       profileImage: "ER"
     },
     {
@@ -71,7 +70,7 @@ const FindStudents = () => {
       skills: ["Python", "R", "Machine Learning", "Data Visualization"],
       availability: "30 hrs/week",
       projectsCompleted: 15,
-      hourlyRate: 35,
+      
       profileImage: "DK"
     },
     {
@@ -86,7 +85,7 @@ const FindStudents = () => {
       skills: ["React", "Python", "UI/UX Design", "Machine Learning"],
       availability: "20 hrs/week",
       projectsCompleted: 3,
-      hourlyRate: 25,
+      
       profileImage: "GK"
     }
   ];
@@ -96,12 +95,25 @@ const FindStudents = () => {
   const availabilityOptions = ["Available now", "Within 1 week", "Within 1 month", "Flexible"];
 
   const handleFilterChange = (filterType, value) => {
-    setFilters(prev => ({
-      ...prev,
-      [filterType]: prev[filterType].includes(value)
-        ? prev[filterType].filter(item => item !== value)
-        : [...prev[filterType], value]
-    }));
+    setFilters(prev => {
+      const newFilters = {
+        ...prev,
+        [filterType]: prev[filterType].includes(value)
+          ? prev[filterType].filter(item => item !== value)
+          : [...prev[filterType], value]
+      };
+      
+      // Update active filters display
+      const allActiveFilters = [];
+      Object.entries(newFilters).forEach(([key, values]) => {
+        if (values.length > 0) {
+          allActiveFilters.push(...values);
+        }
+      });
+      setActiveFilters(allActiveFilters);
+      
+      return newFilters;
+    });
   };
 
   const removeActiveFilter = (filter) => {
@@ -110,7 +122,6 @@ const FindStudents = () => {
 
   const clearAllFilters = () => {
     setFilters({
-      hourlyRate: [10, 70],
       experienceLevel: [],
       academicYear: [],
       major: [],
@@ -118,6 +129,66 @@ const FindStudents = () => {
       availability: []
     });
     setActiveFilters([]);
+  };
+
+  // Filter students based on current filter state
+  const getFilteredStudents = () => {
+    return students.filter(student => {
+      // Check experience level
+      if (filters.experienceLevel.length > 0) {
+        const studentExperience = getStudentExperienceLevel(student);
+        if (!filters.experienceLevel.includes(studentExperience)) {
+          return false;
+        }
+      }
+
+      // Check academic year
+      if (filters.academicYear.length > 0) {
+        if (!filters.academicYear.includes(student.year)) {
+          return false;
+        }
+      }
+
+      // Check major
+      if (filters.major.length > 0) {
+        if (!filters.major.includes(student.major)) {
+          return false;
+        }
+      }
+
+      // Check skills (at least one skill must match)
+      if (filters.skills.length > 0) {
+        if (!filters.skills.some(skill => student.skills.includes(skill))) {
+          return false;
+        }
+      }
+
+      // Check availability
+      if (filters.availability.length > 0) {
+        const studentAvailability = getStudentAvailability(student);
+        if (!filters.availability.includes(studentAvailability)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  };
+
+  // Helper function to determine experience level based on projects completed
+  const getStudentExperienceLevel = (student) => {
+    if (student.projectsCompleted >= 10) return "Advanced";
+    if (student.projectsCompleted >= 5) return "Intermediate";
+    return "Beginner";
+  };
+
+  // Helper function to determine availability status
+  const getStudentAvailability = (student) => {
+    const hours = parseInt(student.availability);
+    if (hours >= 25) return "Available now";
+    if (hours >= 15) return "Within 1 week";
+    if (hours >= 10) return "Within 1 month";
+    return "Flexible";
   };
 
   return (
@@ -153,27 +224,6 @@ const FindStudents = () => {
                 </div>
               )}
 
-              {/* Hourly Rate Slider */}
-              <div className="filter-section">
-                <h5 className="filter-label">Hourly Rate</h5>
-                <div className="rate-slider-container">
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={filters.hourlyRate[1]}
-                    className="rate-slider"
-                    onChange={(e) => setFilters(prev => ({
-                      ...prev,
-                      hourlyRate: [prev.hourlyRate[0], parseInt(e.target.value)]
-                    }))}
-                  />
-                  <div className="rate-labels">
-                    <span>$0</span>
-                    <span>$100+</span>
-                  </div>
-                </div>
-              </div>
 
               {/* Experience Level */}
               <div className="filter-section">
@@ -268,7 +318,8 @@ const FindStudents = () => {
 
           {/* Right Content - Student Profiles */}
           <div className="students-grid">
-            {students.map(student => (
+            {getFilteredStudents().length > 0 ? (
+              getFilteredStudents().map(student => (
               <div key={student.id} className="student-card">
                 <div className="student-header">
                   <div className="student-avatar">
@@ -286,9 +337,7 @@ const FindStudents = () => {
                       </span>
                     </p>
                   </div>
-                  <div className="student-rate">
-                    ${student.hourlyRate}/hr
-                  </div>
+                  
                 </div>
 
                 <p className="student-description">{student.description}</p>
@@ -310,11 +359,30 @@ const FindStudents = () => {
                 </div>
 
                 <div className="student-actions">
-                  <button className="view-profile-btn">View Profile</button>
-                  <button className="contact-btn">Contact</button>
+                  <Link to={`/profile/${student.id}`} className="view-profile-btn">View Profile</Link>
+                  <Link to={`/profile/${student.id}`} className="contact-btn">Contact</Link>
                 </div>
               </div>
-            ))}
+              ))
+            ) : (
+              <div className="no-results">
+                <div className="no-results-content">
+                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="no-results-icon">
+                    <circle cx="11" cy="11" r="8"/>
+                    <path d="m21 21-4.35-4.35"/>
+                    <line x1="11" y1="8" x2="11" y2="14"/>
+                    <line x1="8" y1="11" x2="14" y2="11"/>
+                  </svg>
+                  <h3 className="no-results-title">No students found</h3>
+                  <p className="no-results-description">
+                    No students match your current filter criteria. Try adjusting your filters to see more results.
+                  </p>
+                  <button className="clear-filters-btn-large" onClick={clearAllFilters}>
+                    Clear All Filters
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
