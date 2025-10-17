@@ -1,10 +1,12 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./Form.css";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault(); // 🔹 prevent refresh
@@ -22,6 +24,10 @@ function Login() {
 
     if (email === user.email && password === user.password) {
       setMessage(`✅ Welcome back, ${user.firstName}!`);
+      // Redirect to dashboard after successful login
+      setTimeout(() => {
+        navigate('/dashboard/5');
+      }, 1500); // Wait 1.5 seconds to show success message
     } else {
       setMessage("❌ Invalid email or password. Try again.");
     }
