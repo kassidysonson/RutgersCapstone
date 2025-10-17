@@ -1,8 +1,27 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import './Header.css';
 
 const Header = () => {
+  const location = useLocation();
+  
+  const handleHomeClick = (e) => {
+    e.preventDefault();
+    if (location.pathname === '/') {
+      // If on homepage, scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      // If on other pages, navigate to homepage
+      window.location.href = '/';
+    }
+  };
+
+  const handleHowItWorksClick = (e) => {
+    e.preventDefault();
+    // Always navigate to homepage with hash to scroll to HowItWorks section
+    window.location.href = '/#how-it-works';
+  };
+
   return (
     <header className="header">
       <div className="header-container">
@@ -14,10 +33,10 @@ const Header = () => {
 
         {/* Navigation */}
         <nav className="nav">
-          <Link to="/" className="nav-link">Home</Link>
+          <a href="/" className="nav-link" onClick={handleHomeClick}>Home</a>
           <Link to="/for-students" className="nav-link">Find Students</Link>
           <Link to="/browse-projects" className="nav-link">Browse Projects</Link>
-          <Link to="#how-it-works" className="nav-link">How it Works</Link>
+          <a href="/#how-it-works" className="nav-link" onClick={handleHowItWorksClick}>How it Works</a>
         </nav>
 
         {/* Search Bar */}
