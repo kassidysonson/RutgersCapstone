@@ -7,6 +7,7 @@ import Dashboard from './components/Dashboard.jsx';
 import PostProject from './components/PostProject.jsx';
 import StudentProfile from './components/StudentProfile.jsx';
 import ForStudents from './components/ForStudents.jsx';
+import BrowseProjects from './components/BrowseProjects.jsx';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path="/post-project" element={<PostProject />} />
         <Route path="/profile/:id" element={<StudentProfile />} />
         <Route path="/for-students" element={<ForStudents />} />
+        <Route path="/browse-projects" element={<BrowseProjects />} />
       </Routes>
     </div>
   );

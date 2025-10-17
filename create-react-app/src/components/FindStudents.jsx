@@ -28,6 +28,7 @@ const FindStudents = () => {
       projectsCompleted: 8,
       profileImage: "SC"
     },
+    
     {
       id: 2,
       name: "Marcus Johnson",
