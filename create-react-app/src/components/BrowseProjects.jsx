@@ -7,7 +7,6 @@ const BrowseProjects = () => {
     category: [],
     skills: [],
     duration: [],
-    budget: []
   });
 
   const [activeFilters, setActiveFilters] = useState([]);
@@ -21,7 +20,6 @@ const BrowseProjects = () => {
       description: "Looking for a skilled developer to build a modern e-commerce mobile application with React Native. The app should include user authentication, product catalog, shopping cart, and payment integration.",
       skills: ["React Native", "JavaScript", "API Integration", "UI/UX Design"],
       duration: "3-6 months",
-      budget: "$5,000 - $10,000",
       postedDate: "Posted 2 days ago",
       applicants: 12,
       location: "Remote",
@@ -34,7 +32,6 @@ const BrowseProjects = () => {
       description: "Need a creative designer to develop a complete brand identity for our tech startup. This includes logo design, color palette, typography, and brand guidelines.",
       skills: ["Logo Design", "Branding", "Adobe Illustrator", "Creative Suite"],
       duration: "1-2 months",
-      budget: "$2,000 - $4,000",
       postedDate: "Posted 1 week ago",
       applicants: 8,
       location: "Remote",
@@ -47,7 +44,6 @@ const BrowseProjects = () => {
       description: "Seeking a data scientist to create an interactive dashboard for business analytics. Must have experience with Python, SQL, and data visualization tools.",
       skills: ["Python", "SQL", "Data Visualization", "Machine Learning"],
       duration: "2-4 months",
-      budget: "$3,000 - $6,000",
       postedDate: "Posted 3 days ago",
       applicants: 15,
       location: "Hybrid",
@@ -60,7 +56,6 @@ const BrowseProjects = () => {
       description: "Looking for a full-stack developer to build a social media scheduling and analytics platform. Should include content calendar, post scheduling, and performance analytics.",
       skills: ["React", "Node.js", "MongoDB", "API Integration"],
       duration: "4-6 months",
-      budget: "$8,000 - $15,000",
       postedDate: "Posted 5 days ago",
       applicants: 20,
       location: "Remote",
@@ -73,7 +68,6 @@ const BrowseProjects = () => {
       description: "Need a UI/UX designer to create wireframes and high-fidelity designs for a fitness tracking mobile application. Focus on user experience and modern design principles.",
       skills: ["Figma", "Mobile Design", "User Research", "Prototyping"],
       duration: "2-3 months",
-      budget: "$2,500 - $5,000",
       postedDate: "Posted 1 week ago",
       applicants: 6,
       location: "Remote",
@@ -84,7 +78,6 @@ const BrowseProjects = () => {
   const categories = ["Web Development", "Mobile Development", "Design", "Data Science", "Marketing"];
   const skills = ["React", "Python", "JavaScript", "UI/UX Design", "Machine Learning", "Node.js", "Figma", "SQL"];
   const durations = ["1-2 months", "2-3 months", "3-6 months", "6+ months"];
-  const budgets = ["$1,000 - $2,500", "$2,500 - $5,000", "$5,000 - $10,000", "$10,000+"];
 
   const handleFilterChange = (filterType, value) => {
     setFilters(prev => {
@@ -117,7 +110,6 @@ const BrowseProjects = () => {
       category: [],
       skills: [],
       duration: [],
-      budget: []
     });
     setActiveFilters([]);
   };
@@ -146,12 +138,6 @@ const BrowseProjects = () => {
         }
       }
 
-      // Check budget
-      if (filters.budget.length > 0) {
-        if (!filters.budget.includes(project.budget)) {
-          return false;
-        }
-      }
 
       return true;
     });
@@ -160,12 +146,6 @@ const BrowseProjects = () => {
   return (
     <div className="browse-projects-page">
       <div className="browse-projects-header">
-        <Link to="/" className="back-link">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="m15 18-6-6 6-6"/>
-          </svg>
-          Back to Home
-        </Link>
         <h1 className="page-title">Browse Projects</h1>
       </div>
 
@@ -244,22 +224,6 @@ const BrowseProjects = () => {
               </div>
             </div>
 
-            {/* Budget Filter */}
-            <div className="filter-section">
-              <h3 className="filter-label">Budget Range</h3>
-              <div className="filter-options">
-                {budgets.map(budget => (
-                  <label key={budget} className="checkbox-label">
-                    <input
-                      type="checkbox"
-                      checked={filters.budget.includes(budget)}
-                      onChange={() => handleFilterChange('budget', budget)}
-                    />
-                    <span className="checkbox-text">{budget}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
           </div>
         </div>
 
@@ -296,10 +260,6 @@ const BrowseProjects = () => {
                     <div className="detail-item">
                       <span className="detail-label">Duration:</span>
                       <span className="detail-value">{project.duration}</span>
-                    </div>
-                    <div className="detail-item">
-                      <span className="detail-label">Budget:</span>
-                      <span className="detail-value">{project.budget}</span>
                     </div>
                     <div className="detail-item">
                       <span className="detail-label">Applicants:</span>
