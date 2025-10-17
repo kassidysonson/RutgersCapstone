@@ -62,8 +62,15 @@ const Header = () => {
               <circle cx="12" cy="7" r="4"/>
             </svg>
           </a>
+          <Link to="/login">
+          
           <button className="btn-login">Log In</button>
+          </Link>
+          <Link to="/signup">
           <button className="btn-signup">Sign Up</button>
+          </Link>
+
+          
         </div>
       </div>
         </header>
