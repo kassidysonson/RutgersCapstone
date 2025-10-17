@@ -22,8 +22,8 @@ html, body {
   padding: 2rem;
   border-radius: 12px;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-  width: 400px;
-  max-width: 90%;
+  width: 450px;
+  max-width: 95%;
 }
 
 /* Typography */
@@ -56,7 +56,13 @@ form {
 
 .row {
   display: flex;
-  gap: 10px;
+  gap: 10px
+}
+
+.row input {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 /* Inputs and select */
