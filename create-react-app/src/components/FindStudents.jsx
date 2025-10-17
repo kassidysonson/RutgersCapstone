@@ -360,7 +360,6 @@ const FindStudents = () => {
 
                 <div className="student-actions">
                   <Link to={`/profile/${student.id}`} className="view-profile-btn">View Profile</Link>
-                  <Link to={`/profile/${student.id}`} className="contact-btn">Contact</Link>
                 </div>
               </div>
               ))

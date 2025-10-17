@@ -1,9 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import './StudentProfile.css';
 
 const StudentProfile = () => {
   const { id } = useParams();
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const [messageData, setMessageData] = useState({
+    subject: '',
+    message: '',
+    senderEmail: '',
+    senderName: ''
+  });
 
   // Student data (same as in FindStudents)
   const students = [
@@ -112,14 +119,51 @@ const StudentProfile = () => {
       phone: "(973) 555-0654",
       linkedin: "linkedin.com/in/galatharakahanda",
       github: "github.com/galathara",
-      portfolio: "galathara.dev",
+      portfolio: "kahanda.dev",
       experience: "2 years",
-      languages: ["English", "Sinhala"],
+      languages: ["English", "Creole"],
       timezone: "EST"
     }
   ];
 
   const student = students.find(s => s.id === parseInt(id));
+
+  const handleSendMessage = () => {
+    setShowMessageModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowMessageModal(false);
+    setMessageData({
+      subject: '',
+      message: '',
+      senderEmail: '',
+      senderName: ''
+    });
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setMessageData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSendEmail = (e) => {
+    e.preventDefault();
+    
+    // Create mailto link with pre-filled content
+    const mailtoLink = `mailto:${student.email}?subject=${encodeURIComponent(messageData.subject)}&body=${encodeURIComponent(
+      `Hello ${student.name},\n\n${messageData.message}\n\nBest regards,\n${messageData.senderName}\n${messageData.senderEmail}`
+    )}`;
+    
+    // Open the user's default email client
+    window.location.href = mailtoLink;
+    
+    // Close the modal
+    handleCloseModal();
+  };
 
   if (!student) {
     return (
@@ -156,10 +200,7 @@ const StudentProfile = () => {
                 <span className="rating-count">({student.reviewCount} reviews)</span>
               </div>
             </div>
-            <div className="profile-actions">
-              <button className="btn-contact-primary">Contact {student.name.split(' ')[0]}</button>
-              <button className="btn-save-profile">Save Profile</button>
-            </div>
+            
           </div>
 
           <div className="profile-content">
@@ -254,13 +295,93 @@ const StudentProfile = () => {
               </div>
 
               <div className="quick-actions">
-                <button className="btn-message">Send Message</button>
-                <button className="btn-schedule">Schedule Meeting</button>
+                <button className="btn-message" onClick={handleSendMessage}>Send Message</button>
+                
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Message Modal */}
+      {showMessageModal && (
+        <div className="modal-overlay" onClick={handleCloseModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Send Message to {student.name}</h2>
+              <button className="modal-close" onClick={handleCloseModal}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            
+            <form onSubmit={handleSendEmail} className="message-form">
+              <div className="form-group">
+                <label htmlFor="senderName">Your Name</label>
+                <input
+                  type="text"
+                  id="senderName"
+                  name="senderName"
+                  value={messageData.senderName}
+                  onChange={handleInputChange}
+                  required
+                  placeholder="Enter your name"
+                />
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="senderEmail">Your Email</label>
+                <input
+                  type="email"
+                  id="senderEmail"
+                  name="senderEmail"
+                  value={messageData.senderEmail}
+                  onChange={handleInputChange}
+                  required
+                  placeholder="Enter your email"
+                />
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="subject">Subject</label>
+                <input
+                  type="text"
+                  id="subject"
+                  name="subject"
+                  value={messageData.subject}
+                  onChange={handleInputChange}
+                  required
+                  placeholder="Enter message subject"
+                />
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="message">Message</label>
+                <textarea
+                  id="message"
+                  name="message"
+                  value={messageData.message}
+                  onChange={handleInputChange}
+                  required
+                  rows="6"
+                  placeholder="Write your message here..."
+                />
+              </div>
+              
+              <div className="modal-actions">
+                <button type="button" className="btn-cancel" onClick={handleCloseModal}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn-send">
+                  Send Message
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
