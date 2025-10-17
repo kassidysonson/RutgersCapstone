@@ -1,15 +1,18 @@
 .for-students-page {
   padding: 2rem;
-  max-width: 800px;
+  width: 100%;
+  max-width: none;
   margin: 0 auto;
-  text-align: center;
+  text-align: left;
 }
 
+/* Keeps header nicely centered */
 .for-students-header {
+  max-width: 800px;
+  margin: 0 auto 2rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 2rem;
 }
 
 .page-title {
@@ -34,4 +37,17 @@
 .for-students-content p {
   line-height: 1.5;
   color: #555;
+}
+
+/* 🟦 ADD THIS SECTION (new wrapper for FindStudents) */
+.find-students-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 1rem 0;
+}
+
+.find-students-wrapper > * {
+  width: 100%;
+  max-width: 1200px; /* optional: limits content on large screens */
 }

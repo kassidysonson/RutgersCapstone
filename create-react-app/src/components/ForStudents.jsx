@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import './ForStudents.css';
+import FindStudents from './FindStudents';
 
 const ForStudents = () => {
   return (
@@ -15,14 +16,8 @@ const ForStudents = () => {
         <h1 className="page-title">For Students</h1>
       </div>
 
-      <div className="for-students-content">
-        <h2>Opportunities for Students</h2>
-        <p>
-          Explore projects, collaborate with teams, and gain real-world experience.
-        </p>
-        <p>
-          This page will later include student profiles, available projects, and filters by skill or major.
-        </p>
+      <div className="find-students-wrapper">
+        <FindStudents />
       </div>
     </div>
   );
