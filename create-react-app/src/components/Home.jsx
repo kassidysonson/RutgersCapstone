@@ -10,8 +10,8 @@ const Home = () => {
     <div className="App">
       <Hero />
       <HowItWorks />
-      <FindStudents />
       <PerfectForStudents />
+      <FindStudents />
       <BottomSection />
     </div>
   );
