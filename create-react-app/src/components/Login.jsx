@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "../supabaseClient";
 import "./Form.css";
 
 function Login() {
@@ -8,28 +9,30 @@ function Login() {
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
-    e.preventDefault(); // 🔹 prevent refresh
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-    const storedData = localStorage.getItem("joinupUser");
-    console.log("Stored user data:", storedData);
-
-    if (!storedData) {
-      setMessage("⚠️ No user found. Please sign up first.");
+    if (!email) {
+      setMessage("❌ Please enter your email.");
       return;
     }
 
-    const user = JSON.parse(storedData);
-    console.log("Parsed user:", user);
+    setMessage("🔄 Sending magic link to your email...");
 
-    if (email === user.email && password === user.password) {
-      setMessage(`✅ Welcome back, ${user.firstName}!`);
-      // Redirect to dashboard after successful login
-      setTimeout(() => {
-        navigate('/dashboard/5');
-      }, 1500); // Wait 1.5 seconds to show success message
-    } else {
-      setMessage("❌ Invalid email or password. Try again.");
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email: email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard/5`
+        }
+      });
+
+      if (error) throw error;
+
+      setMessage("✅ Check your email for a magic link to sign in.");
+    } catch (error) {
+      console.error("Login (magic link) error:", error);
+      setMessage(`❌ Error: ${error.message}`);
     }
   };
 
@@ -49,10 +52,9 @@ function Login() {
           />
           <input
             type="password"
-            placeholder="Password"
+            placeholder="Password (unused for magic link)"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            required
           />
           <button type="submit" className="solid-button">Continue</button>
         </form>
@@ -68,4 +70,5 @@ function Login() {
   );
 }
 
+//export default Login;
 export default Login;
