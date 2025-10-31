@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
-import bcrypt from "bcryptjs";
 import "./Form.css";
 
 function Signup() {
@@ -17,41 +16,30 @@ function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!firstName || !lastName || !email || !password || !heardFrom) {
-      setMessage("❌ Please fill in all fields.");
+    if (!email) {
+      setMessage("❌ Please enter your email.");
       return;
     }
 
-    setMessage("🔄 Creating your account...");
+    setMessage("🔄 Sending magic link to your email...");
 
     try {
-      // Hash password client-side to match existing PHP bcrypt usage
-      const hashedPassword = await bcrypt.hash(password, 10);
+      const { error } = await supabase.auth.signInWithOtp({
+        email: email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/login`
+        }
+      });
 
-      // Insert directly into users table (no Supabase Auth)
-      const { error: insertError } = await supabase
-        .from("users")
-        .insert({
-          // id omitted -> default gen_random_uuid() will populate
-          email: email,
-          password: hashedPassword,
-          full_name: `${firstName} ${lastName}`,
-          university: null,
-          bio: null,
-          // created_at omitted -> default now()
-        });
-
-      if (insertError) {
-        console.error("User insert error:", insertError);
-        setMessage(`❌ Could not create user: ${insertError.message}`);
-        return;
+      if (error) {
+        throw error;
       }
 
-      setMessage(`✅ Welcome, ${firstName}! Your JoinUP account has been created.`);
+      setMessage("✅ Check your email for a magic link to sign in.");
       setTimeout(() => navigate("/login"), 1500);
     } catch (error) {
-      console.error("Signup error:", error);
-      setMessage(`❌ Error creating account: ${error.message}`);
+      console.error("Signup (magic link) error:", error);
+      setMessage(`❌ Error: ${error.message}`);
     }
   };
 
@@ -68,7 +56,7 @@ function Signup() {
           </div>
 
           <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-          <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+          <input type="password" placeholder="Password (unused for magic link)" value={password} onChange={(e) => setPassword(e.target.value)} />
 
           <select value={heardFrom} onChange={(e) => setHeardFrom(e.target.value)}>
             <option value="">How did you hear about us?</option>
