@@ -3,11 +3,12 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "scripts": {
+"scripts": {
   "dev": "vite",
   "build": "vite build",
-  "start": "npm run build && npx serve -s dist"
+  "start": "vite"
 }
+
 ,
   "dependencies": {
     "@supabase/supabase-js": "^2.76.1",
