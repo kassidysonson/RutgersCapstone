@@ -1,24 +1,33 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import './Header.css';
+import { supabase } from '../supabaseClient';
 
 const Header = () => {
   const location = useLocation();
+  const [fullName, setFullName] = useState('');
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      const s = window.supabaseSession;
+      if (!s?.user?.id) { setFullName(''); return; }
+      const { data, error } = await supabase.from('users').select('full_name').eq('id', s.user.id).maybeSingle();
+      if (!error && data?.full_name) setFullName(data.full_name);
+    };
+    loadProfile();
+  }, [location.pathname]);
   
   const handleHomeClick = (e) => {
     e.preventDefault();
     if (location.pathname === '/') {
-      // If on homepage, scroll to top
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      // If on other pages, navigate to homepage
       window.location.href = '/';
     }
   };
 
   const handleHowItWorksClick = (e) => {
     e.preventDefault();
-    // Always navigate to homepage with hash to scroll to HowItWorks section
     window.location.href = '/#how-it-works';
   };
 
@@ -56,20 +65,25 @@ const Header = () => {
 
         {/* Action Buttons */}
         <div className="header-actions">
-          <a href="/dashboard/5" className="btn-dashboard">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-              <circle cx="12" cy="7" r="4"/>
-            </svg>
-          </a>
-          <Link to="/login">
-          
-          <button className="btn-login">Log In</button>
-          </Link>
-          <Link to="/signup">
-          <button className="btn-signup">Sign Up</button>
-          </Link>
-
+          {fullName ? (
+            <span className="btn-login" style={{ cursor: 'default' }}>{fullName}</span>
+          ) : (
+            <>
+              <a href="/dashboard/5" className="btn-dashboard">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+              </a>
+              <Link to="/login">
+              
+              <button className="btn-login">Log In</button>
+              </Link>
+              <Link to="/signup">
+              <button className="btn-signup">Sign Up</button>
+              </Link>
+            </>
+          )}
           
         </div>
       </div>

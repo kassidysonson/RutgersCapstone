@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import './PostProject.css';
+import { supabase } from '../supabaseClient';
 
 const PostProject = () => {
   const [formData, setFormData] = useState({
@@ -14,7 +15,8 @@ const PostProject = () => {
     academicYear: 'Any year',
     major: '',
     availability: '',
-    isUrgent: false
+    isUrgent: false,
+    category: ''
   });
 
   const handleInputChange = (e) => {
@@ -25,10 +27,27 @@ const PostProject = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Project posted:', formData);
-    // Here you would typically send the data to your backend
+    const s = window.supabaseSession;
+    if (!s?.user?.id) { console.warn('Not signed in'); return; }
+
+    // Map to DB schema
+    const row = {
+      owner_id: s.user.id,
+      title: formData.title,
+      description: formData.description,
+      expectations: formData.skills,
+      location: 'Remote',
+      compensation: formData.budget,
+      // extra columns we will add: category, duration
+      category: formData.category || null,
+      duration: formData.duration || null
+    };
+
+    const { error } = await supabase.from('projects').insert(row);
+    if (error) { console.error('Insert project error:', error); return; }
+    alert('Project posted');
   };
 
   return (
@@ -131,6 +150,18 @@ const PostProject = () => {
                     required
                   />
                 </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Category</label>
+                <input
+                  type="text"
+                  name="category"
+                  value={formData.category}
+                  onChange={handleInputChange}
+                  placeholder="e.g., Web Development, Design"
+                  className="form-input"
+                />
               </div>
 
               <div className="form-group">
