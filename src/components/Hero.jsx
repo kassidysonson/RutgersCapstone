@@ -81,7 +81,7 @@ const Hero = () => {
           <div className="hero-right">
             <div className="hero-image">
               <img 
-                src="/src/assets/getty.jpg" 
+                src="/assets/getty.jpg" 
                 alt="JoinUp workspace setup with laptop, coffee, and study materials"
                 className="hero-img"
               />
