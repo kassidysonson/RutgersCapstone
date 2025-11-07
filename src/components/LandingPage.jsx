@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import './LandingPage.css';
 
 const LandingPage = () => {
@@ -7,13 +8,15 @@ const LandingPage = () => {
       {/* Header */}
       <header className="landing-header">
         <div className="landing-header-container">
-          <div className="landing-logo">JoinUp</div>
+          <Link to="/" className="landing-logo">JoinUp</Link>
           <nav className="landing-nav">
-            <a href="#" className="landing-nav-link">Our Story</a>
+            <Link to="/about" className="landing-nav-link">Our Story</Link>
             <a href="#" className="landing-nav-link">Collaborate</a>
-            <a href="#" className="landing-nav-link">Sign in</a>
+            <Link to="/login" className="landing-nav-link">Sign in</Link>
           </nav>
-          <button className="landing-btn-get-started">Get started</button>
+          <Link to="/login">
+            <button className="landing-btn-get-started">Get started</button>
+          </Link>
         </div>
       </header>
 
@@ -30,13 +33,15 @@ const LandingPage = () => {
             <p className="landing-description">
               The platform where students hire students, founders find talent, and everyone gains real-world experience.
             </p>
-            <button className="landing-btn-start-connecting">Start Connecting</button>
+            <Link to="/login">
+              <button className="landing-btn-start-connecting">Start Connecting</button>
+            </Link>
           </div>
 
           {/* Right Section */}
           <div className="landing-right">
             <img 
-              src="/src/assets/getty.jpg" 
+              src="/assets/getty.jpg" 
               alt="Students collaborating" 
               className="landing-image"
             />

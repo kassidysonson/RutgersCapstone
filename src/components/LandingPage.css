@@ -24,6 +24,13 @@
   font-weight: 700;
   color: #000000;
   letter-spacing: -0.5px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.landing-logo:hover {
+  opacity: 0.7;
 }
 
 .landing-nav {

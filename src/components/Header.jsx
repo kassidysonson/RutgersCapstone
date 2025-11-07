@@ -31,21 +31,27 @@ const Header = () => {
     window.location.href = '/#how-it-works';
   };
 
+  // Hide header on login page, signup page, and landing page (they have their own headers)
+  if (location.pathname === '/login' || location.pathname === '/signup' || location.pathname === '/') {
+    return null;
+  }
+
   return (
     <header className="header">
       <div className="header-container">
         {/* Logo */}
-        <div className="logo">
+        <Link to="/" className="logo">
           <img src="/src/assets/logo.svg" alt="JoinUp Logo" className="logo-svg" />
           
-        </div>
+        </Link>
 
         {/* Navigation */}
         <nav className="nav">
           <a href="/" className="nav-link" onClick={handleHomeClick}>Home</a>
           <Link to="/for-students" className="nav-link">Find Students</Link>
           <Link to="/browse-projects" className="nav-link">Browse Projects</Link>
-          <a href="/#how-it-works" className="nav-link" onClick={handleHowItWorksClick}>How it Works</a>
+          <Link to="/about" className="nav-link">Our Story</Link>
+          <a href="./how-it-works" className="nav-link" onClick={handleHowItWorksClick}>How it Works</a>
         </nav>
 
         {/* Search Bar */}
