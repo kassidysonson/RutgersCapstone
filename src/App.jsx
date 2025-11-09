@@ -20,38 +20,7 @@ function App() {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const { data: listener } = supabase.auth.onAuthStateChange((event, newSession) => {
-    console.log("🔁 Auth event:", event, "New session:", !!newSession);
-
-    // Store session
-    setSession(newSession);
-
-    // 🚫 Ignore INITIAL_SESSION to prevent loops
-    if (event === "INITIAL_SESSION") return;
-
-    if (event === "SIGNED_IN" && newSession) {
-      console.log("✅ User is signed in (first login)");
-      if (location.pathname === "/login" || location.pathname === "/signup") {
-        console.log("➡️ Redirecting to dashboard...");
-        navigate(`/dashboard/${newSession.user.id}`);
-      }
-    }
-
-    if (event === "SIGNED_OUT") {
-      console.log("🚪 User is signed out");
-      if (
-        location.pathname.startsWith("/dashboard") ||
-        location.pathname.startsWith("/post-project")
-      ) {
-        console.log("➡️ Redirecting to login...");
-        navigate("/login");
-      }
-    }
-  });
-
-
-
-  // 🔹 Check session on load
+  // 🔹 On mount, check for active session
   useEffect(() => {
     const getSession = async () => {
       const { data } = await supabase.auth.getSession();
@@ -61,17 +30,28 @@ function App() {
     getSession();
 
     // 🔹 Watch for login/logout events
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    const { data: listener } = supabase.auth.onAuthStateChange((event, newSession) => {
+      console.log("🔁 Auth event:", event, "New session:", !!newSession);
+
       setSession(newSession);
 
-      if (newSession) {
-        // Only redirect to dashboard if user is on login/signup
+      // 🚫 Ignore initial session (prevents dashboard loop)
+      if (event === "INITIAL_SESSION") return;
+
+      if (event === "SIGNED_IN" && newSession) {
+        console.log("✅ User just logged in");
         if (location.pathname === "/login" || location.pathname === "/signup") {
           navigate(`/dashboard/${newSession.user.id}`);
         }
-      } else {
-        // If logged out, redirect only if currently in protected route
-        if (location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/post-project")) {
+      }
+
+      if (event === "SIGNED_OUT") {
+        console.log("🚪 User logged out");
+        if (
+          location.pathname.startsWith("/dashboard") ||
+          location.pathname.startsWith("/post-project") ||
+          location.pathname.startsWith("/profile")
+        ) {
           navigate("/login");
         }
       }
@@ -80,7 +60,7 @@ function App() {
     return () => listener.subscription.unsubscribe();
   }, [navigate, location.pathname]);
 
-  // 🔹 Block access to protected routes
+  // 🔹 Prevent access to protected routes if not logged in
   useEffect(() => {
     if (!loading && !session) {
       const protectedRoutes = ["/dashboard", "/post-project", "/profile"];
@@ -94,7 +74,6 @@ function App() {
     return <div style={{ textAlign: "center", marginTop: "40px" }}>Loading...</div>;
   }
 
-  
   return (
     <div className="App">
       <Header />
