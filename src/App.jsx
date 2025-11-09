@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import './App.css';
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { supabase } from "./supabaseClient";import Header from './components/Header.jsx';
@@ -14,7 +14,6 @@ import Signup from './components/Signup.jsx';
 import About from './components/About.jsx';
 
 function App() {
-
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -41,6 +40,7 @@ function App() {
 
     return () => listener.subscription.unsubscribe();
   }, [navigate]);
+
   
   return (
     <div className="App">
