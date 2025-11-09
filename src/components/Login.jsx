@@ -12,33 +12,35 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!email || !password) {
-      setMessage("❌ Please enter both email and password.");
+    if (!email) {
+      setMessage("❌ Please enter your email.");
       return;
     }
 
-    setMessage("🔄 Logging in...");
+    setMessage("🔄 Sending magic link to your email...");
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const redirectUrl =
+        process.env.NODE_ENV === "production"
+          ? "https://rutgers-app-b05a48dc4dbb.herokuapp.com/dashboard/5"
+          : "http://localhost:3000/dashboard/5";
+
+      const { error } = await supabase.auth.signInWithOtp({
         email,
-        password,
+        options: {
+          emailRedirectTo: redirectUrl,
+        },
       });
 
-      if (error) {
-        console.error("Login error:", error.message);
-        setMessage(`❌ ${error.message}`);
-        return;
-      }
+      if (error) throw error;
 
-      console.log("✅ Logged in successfully", data);
-      setMessage("✅ Logged in successfully!");
-      navigate(`/dashboard/${data.user.id}`);
+      setMessage("✅ Check your email for a magic link to sign in.");
     } catch (error) {
-      console.error("Unexpected login error:", error);
-      setMessage(`❌ ${error.message}`);
+      console.error("Login (magic link) error:", error);
+      setMessage(`❌ Error: ${error.message}`);
     }
   };
+
 
   
   return (
