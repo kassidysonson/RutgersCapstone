@@ -6,40 +6,48 @@ import { supabase } from "../supabaseClient";
 const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [fullName, setFullName] = useState("");
+  const [displayName, setDisplayName] = useState("");
 
-  // ✅ Proper logout — clears session everywhere
+  // 🔹 Logout handler
   const handleLogout = async () => {
     await supabase.auth.signOut();
     localStorage.clear();
     sessionStorage.clear();
-    window.supabaseSession = null; // clear global session reference
-    navigate("/login"); // use React Router instead of window.location
+    navigate("/login"); // ✅ use navigate instead of window.location
   };
 
-  // ✅ Load user’s name from Supabase
+  // 🔹 Load user's profile (full name or email)
   useEffect(() => {
     const loadProfile = async () => {
       const { data } = await supabase.auth.getSession();
       const session = data?.session;
 
-      if (!session?.user?.id) {
-        setFullName("");
+      if (!session?.user) {
+        setDisplayName("");
         return;
       }
 
+      const userId = session.user.id;
+      const userEmail = session.user.email;
+
+      // Try to get full_name from your users table
       const { data: profile, error } = await supabase
         .from("users")
         .select("full_name")
-        .eq("id", session.user.id)
+        .eq("id", userId)
         .maybeSingle();
 
-      if (!error && profile?.full_name) setFullName(profile.full_name);
+      if (!error && profile?.full_name) {
+        setDisplayName(profile.full_name);
+      } else {
+        // Fallback: show email if no full_name found
+        setDisplayName(userEmail);
+      }
     };
 
     loadProfile();
 
-    // 🔁 Update header when auth state changes
+    // Re-run when auth state changes
     const { data: listener } = supabase.auth.onAuthStateChange(() => {
       loadProfile();
     });
@@ -47,22 +55,21 @@ const Header = () => {
     return () => listener.subscription.unsubscribe();
   }, [location.pathname]);
 
-  // ✅ Use navigate() instead of reloading the page
   const handleHomeClick = (e) => {
     e.preventDefault();
     if (location.pathname === "/") {
       window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
-      navigate("/"); // ← use React Router navigation
+      navigate("/");
     }
   };
 
   const handleHowItWorksClick = (e) => {
     e.preventDefault();
-    navigate("/#how-it-works"); // same: client-side navigation
+    navigate("/#how-it-works");
   };
 
-  // 🧩 Hide header on login/signup/landing pages
+  // Hide header on login/signup/landing
   if (
     location.pathname === "/login" ||
     location.pathname === "/signup" ||
@@ -74,16 +81,16 @@ const Header = () => {
   return (
     <header className="header">
       <div className="header-container">
-        {/* 🔹 Logo */}
-        <Link to="/" className="logo" onClick={handleHomeClick}>
+        {/* Logo */}
+        <Link to="/" className="logo">
           <img src="/assets/logo.svg" alt="JoinUp Logo" className="logo-svg" />
         </Link>
 
-        {/* 🔹 Navigation */}
+        {/* Navigation */}
         <nav className="nav">
-          <Link to="/" className="nav-link">
+          <a href="/" className="nav-link" onClick={handleHomeClick}>
             Home
-          </Link>
+          </a>
           <Link to="/for-students" className="nav-link">
             Find Students
           </Link>
@@ -93,12 +100,16 @@ const Header = () => {
           <Link to="/about" className="nav-link">
             Our Story
           </Link>
-          <a href="#how-it-works" className="nav-link" onClick={handleHowItWorksClick}>
+          <a
+            href="./how-it-works"
+            className="nav-link"
+            onClick={handleHowItWorksClick}
+          >
             How it Works
           </a>
         </nav>
 
-        {/* 🔹 Search Bar */}
+        {/* Search Bar */}
         <div className="search-container">
           <div className="search-bar">
             <svg
@@ -121,12 +132,12 @@ const Header = () => {
           </div>
         </div>
 
-        {/* 🔹 Actions */}
+        {/* Actions */}
         <div className="header-actions">
-          {fullName ? (
+          {displayName ? (
             <>
               <span className="btn-login" style={{ cursor: "default" }}>
-                {fullName}
+                {displayName}
               </span>
               <button className="btn-signup" onClick={handleLogout}>
                 Log Out
