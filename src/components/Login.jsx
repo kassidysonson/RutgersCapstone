@@ -20,10 +20,15 @@ function Login() {
     setMessage("🔄 Sending magic link to your email...");
 
     try {
+      const redirectUrl =
+        process.env.NODE_ENV === "production"
+          ? "https://your-heroku-app-name.herokuapp.com/dashboard/5"
+          : "http://localhost:3000/dashboard/5";
+
       const { error } = await supabase.auth.signInWithOtp({
-        email: email,
+        email,
         options: {
-          emailRedirectTo: `${window.location.origin}/dashboard/5`
+          emailRedirectTo: redirectUrl
         }
       });
 
