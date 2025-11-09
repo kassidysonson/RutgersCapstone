@@ -21,27 +21,34 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   const { data: listener } = supabase.auth.onAuthStateChange((event, newSession) => {
-  console.log("🔁 Auth event:", event, "New session:", !!newSession);
+    console.log("🔁 Auth event:", event, "New session:", !!newSession);
 
-  setSession(newSession);
+    // Store session
+    setSession(newSession);
 
-  if (newSession) {
-    console.log("✅ User is signed in");
-    if (location.pathname === "/login" || location.pathname === "/signup") {
-      console.log("➡️ Redirecting to dashboard...");
-      navigate(`/dashboard/${newSession.user.id}`);
+    // 🚫 Ignore INITIAL_SESSION to prevent loops
+    if (event === "INITIAL_SESSION") return;
+
+    if (event === "SIGNED_IN" && newSession) {
+      console.log("✅ User is signed in (first login)");
+      if (location.pathname === "/login" || location.pathname === "/signup") {
+        console.log("➡️ Redirecting to dashboard...");
+        navigate(`/dashboard/${newSession.user.id}`);
+      }
     }
-  } else {
-    console.log("🚪 User is signed out");
-    if (
-      location.pathname.startsWith("/dashboard") ||
-      location.pathname.startsWith("/post-project")
-    ) {
-      console.log("➡️ Redirecting to login...");
-      navigate("/login");
+
+    if (event === "SIGNED_OUT") {
+      console.log("🚪 User is signed out");
+      if (
+        location.pathname.startsWith("/dashboard") ||
+        location.pathname.startsWith("/post-project")
+      ) {
+        console.log("➡️ Redirecting to login...");
+        navigate("/login");
+      }
     }
-  }
-});
+  });
+
 
 
   // 🔹 Check session on load
