@@ -21,31 +21,29 @@ function Signup() {
       return;
     }
 
-    setMessage("🔄 Sending magic link to your email...");
+    setMessage("🔄 Creating your account...");
 
     try {
-      const redirectUrl =
-        process.env.NODE_ENV === "production"
-          ? "https://rutgers-app-b05a48dc4dbb.herokuapp.com/login"
-          : "http://localhost:3000/login";
+      const fullName = `${firstName} ${lastName}`.trim();
 
-      const { error } = await supabase.auth.signInWithOtp({
+      const { data, error } = await supabase.auth.signUp({
         email,
+        password,
         options: {
-          emailRedirectTo: redirectUrl
-        }
+          data: {
+            full_name: fullName,
+            heard_from: heardFrom,
+          },
+        },
       });
 
+      if (error) throw error;
 
-      if (error) {
-        throw error;
-      }
-
-      setMessage("✅ Check your email for a magic link to sign in.");
+      setMessage("✅ Account created successfully! Redirecting to login...");
       setTimeout(() => navigate("/login"), 1500);
     } catch (error) {
-      console.error("Signup (magic link) error:", error);
-      setMessage(`❌ Error: ${error.message}`);
+      console.error("Signup error:", error);
+      setMessage(`❌ ${error.message}`);
     }
   };
 
