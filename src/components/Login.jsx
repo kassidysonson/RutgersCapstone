@@ -22,7 +22,7 @@ function Login() {
     try {
       const redirectUrl =
         process.env.NODE_ENV === "production"
-          ? "https://your-heroku-app-name.herokuapp.com/dashboard/5"
+          ? "https://rutgers-app-b05a48dc4dbb.herokuapp.com/dashboard/5"
           : "http://localhost:3000/dashboard/5";
 
       const { error } = await supabase.auth.signInWithOtp({
