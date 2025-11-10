@@ -6,27 +6,41 @@ import "./Header.css";
 const Header = () => {
   const navigate = useNavigate();
   const [session, setSession] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get current session when Header loads
+    // 🔹 Get current session on load
     const getSession = async () => {
       const { data } = await supabase.auth.getSession();
       setSession(data.session);
+      setLoading(false);
     };
     getSession();
 
-    // Listen for login/logout events
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      (_, newSession) => setSession(newSession)
-    );
+    // 🔹 Listen for auth changes (login/logout)
+    const { data: listener } = supabase.auth.onAuthStateChange((_, newSession) => {
+      setSession(newSession);
+      setLoading(false);
+    });
 
     return () => listener.subscription.unsubscribe();
   }, []);
 
+  // 🔹 Optional: show minimal header while loading session
+  if (loading) {
+    return (
+      <header className="header">
+        <div className="nav-left">
+          <a href="/" className="logo">JoinUp</a>
+        </div>
+      </header>
+    );
+  }
+
   return (
     <header className="header">
       <div className="nav-left">
-        <a href="/" className="logo">CollabConnect</a>
+        <a href="/" className="logo">JoinUp</a>
       </div>
 
       <div className="nav-right">
@@ -45,7 +59,7 @@ const Header = () => {
                 navigate("/login");
               }}
             >
-              Logout
+              Log Out
             </button>
           </>
         ) : (
