@@ -20,15 +20,13 @@ function Login() {
     setMessage("🔄 Sending magic link to your email...");
 
     try {
-      const redirectUrl =
-        process.env.NODE_ENV === "production"
-          ? "https://rutgers-app-b05a48dc4dbb.herokuapp.com/dashboard/5"
-          : "http://localhost:3000/dashboard/5";
-
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: redirectUrl,
+          emailRedirectTo:
+            process.env.NODE_ENV === "production"
+              ? "https://rutgers-app-b05a48dc4dbb.herokuapp.com"
+              : "http://localhost:3000",
         },
       });
 
