@@ -1,162 +1,260 @@
-import React, { useEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import "./Header.css";
-import { supabase } from "../supabaseClient";
+import React, { useState } from 'react';
+import './Dashboard.css';
 
-const Header = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const [displayName, setDisplayName] = useState("");
+const Dashboard = ({ userId = 5 }) => {
+  const [activeTab, setActiveTab] = useState('applied');
 
-  // 🔹 Logout handler
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    localStorage.clear();
-    sessionStorage.clear();
-    navigate("/login"); // ✅ use navigate instead of window.location
+  // Mock user (id:5) and project data matching the provided UI
+  const user = {
+    id: 5,
+    name: 'Galathara Kahanda',
+    initials: 'GK',
   };
 
-  // 🔹 Load user's profile (full name or email)
-  useEffect(() => {
-    const loadProfile = async () => {
-      const { data } = await supabase.auth.getSession();
-      const session = data?.session;
-
-      if (!session?.user) {
-        setDisplayName("");
-        return;
-      }
-
-      const userId = session.user.id;
-      const userEmail = session.user.email;
-
-      // Try to get full_name from your users table
-      const { data: profile, error } = await supabase
-        .from("users")
-        .select("full_name")
-        .eq("id", userId)
-        .maybeSingle();
-
-      if (!error && profile?.full_name) {
-        setDisplayName(profile.full_name);
-      } else {
-        // Fallback: show email if no full_name found
-        setDisplayName(userEmail);
-      }
-    };
-
-    loadProfile();
-
-    // Re-run when auth state changes
-    const { data: listener } = supabase.auth.onAuthStateChange(() => {
-      loadProfile();
-    });
-
-    return () => listener.subscription.unsubscribe();
-  }, [location.pathname]);
-
-  const handleHomeClick = (e) => {
-    e.preventDefault();
-    if (location.pathname === "/") {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } else {
-      navigate("/");
-    }
+  const stats = {
+    applied: 3,
+    saved: 0,
+    active: 2,
+    posted: 2,
   };
 
-  const handleHowItWorksClick = (e) => {
-    e.preventDefault();
-    navigate("/#how-it-works");
-  };
+  const appliedProjects = [
+    {
+      id: 'p1',
+      title: 'E-commerce Mobile App Development',
+      company: 'ShopFlow Startup',
+      appliedDate: 'Applied Nov 1, 2024',
+      due: 'Dec 15, 2024',
+      skills: ['React Native', 'JavaScript', 'API Integration'],
+      members: [{ name: 'SW', initials: 'SW' }],
+      status: 'In Progress',
+      progress: 65,
+      updated: '2 days ago',
+    },
+    {
+      id: 'p2',
+      title: 'Brand Identity Design Package',
+      company: 'TechVision',
+      appliedDate: 'Applied Oct 15, 2024',
+      due: 'Nov 30, 2024',
+      skills: ['Logo Design', 'Branding', 'Adobe Illustrator'],
+      members: [{ name: 'JD', initials: 'JD' }],
+      status: 'Completed',
+      progress: 100,
+      updated: '1 week ago',
+    },
+  ];
 
-  // Hide header on login/signup/landing
-  if (
-    location.pathname === "/login" ||
-    location.pathname === "/signup" ||
-    location.pathname === "/landing"
-  ) {
+  const postedProjects = [
+    {
+      id: 'posted1',
+      title: 'Social Media Management Tool',
+      postedDate: 'Posted Nov 20, 2024',
+      applicants: 12,
+      description: 'Need a developer to build a social media scheduling platform',
+      due: 'Feb 15, 2025',
+      skills: ['React', 'Node.js', 'MongoDB', 'API Integration'],
+      selectedStudents: [{ name: 'Alex Chen', initials: 'AC' }, { name: 'Sarah Kim', initials: 'SK' }],
+      status: 'Active',
+      statusColor: 'active',
+    },
+    {
+      id: 'posted2',
+      title: 'Mobile App UI/UX Design',
+      postedDate: 'Posted Nov 18, 2024',
+      applicants: 8,
+      description: 'Looking for a creative designer for our fitness app',
+      due: 'Jan 10, 2025',
+      skills: ['Figma', 'Mobile Design', 'User Research', 'Prototyping'],
+      selectedStudents: [],
+      status: 'In Review',
+      statusColor: 'review',
+    },
+  ];
+
+  if (userId !== 5) {
     return null;
   }
 
   return (
-    <header className="header">
-      <div className="header-container">
-        {/* Logo */}
-        <Link to="/" className="logo">
-          <img src="/assets/logo.svg" alt="JoinUp Logo" className="logo-svg" />
-        </Link>
+    <section id="dashboard" className="dashboard">
+      <div className="dashboard-container">
+        <div className="dashboard-header">
+          <div className="user-chip">
+            <div className="avatar">{user.initials}</div>
+            <div className="user-meta">
+              <h2 className="dashboard-title">Welcome back, {user.name}</h2>
+              <p className="dashboard-subtitle">Here’s a quick look at your activity</p>
+            </div>
+          </div>
+          <a href="/post-project" className="btn-post-new">Post New Project</a>
+        </div>
 
-        {/* Navigation */}
-        <nav className="nav">
-          <a href="/" className="nav-link" onClick={handleHomeClick}>
-            Home
-          </a>
-          <Link to="/for-students" className="nav-link">
-            Find Students
-          </Link>
-          <Link to="/browse-projects" className="nav-link">
-            Browse Projects
-          </Link>
-          <Link to="/about" className="nav-link">
-            Our Story
-          </Link>
-          <a
-            href="./how-it-works"
-            className="nav-link"
-            onClick={handleHowItWorksClick}
-          >
-            How it Works
-          </a>
-        </nav>
-
-        {/* Search Bar */}
-        <div className="search-container">
-          <div className="search-bar">
-            <svg
-              className="search-icon"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.35-4.35"></path>
-            </svg>
-            <input
-              type="text"
-              placeholder="Search skills, projects, or students..."
-              className="search-input"
-            />
+        {/* Stat Cards */}
+        <div className="stat-cards">
+          <div className="stat-card">
+            <div className="stat-title">Applied Projects</div>
+            <div className="stat-value">{stats.applied}</div>
+            <div className="stat-hint">Projects you've applied to</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-title">Saved Projects</div>
+            <div className="stat-value">{stats.saved}</div>
+            <div className="stat-hint">Projects saved for later</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-title">Active Projects</div>
+            <div className="stat-value">{stats.active}</div>
+            <div className="stat-hint">Currently working</div>
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="header-actions">
-          {displayName ? (
-            <>
-              <span className="btn-login" style={{ cursor: "default" }}>
-                {displayName}
-              </span>
-              <button className="btn-signup" onClick={handleLogout}>
-                Log Out
-              </button>
-            </>
-          ) : (
-            <>
-              <Link to="/login">
-                <button className="btn-login">Log In</button>
-              </Link>
-              <Link to="/signup">
-                <button className="btn-signup">Sign Up</button>
-              </Link>
-            </>
+        {/* Tabs */}
+        <div className="tabs">
+          <button 
+            className={`tab ${activeTab === 'applied' ? 'active' : ''}`}
+            onClick={() => setActiveTab('applied')}
+          >
+            Applied ({stats.applied})
+          </button>
+          <button 
+            className={`tab ${activeTab === 'saved' ? 'active' : ''}`}
+            onClick={() => setActiveTab('saved')}
+          >
+            Saved ({stats.saved})
+          </button>
+          <button 
+            className={`tab ${activeTab === 'posted' ? 'active' : ''}`}
+            onClick={() => setActiveTab('posted')}
+          >
+            Posted ({stats.posted})
+          </button>
+        </div>
+
+        {/* Project List */}
+        <div className="project-list">
+          {activeTab === 'applied' && appliedProjects.map((p) => (
+            <div key={p.id} className="project-card">
+              <div className="project-top">
+                <div className="project-main">
+                  <h3 className="project-title">{p.title}</h3>
+                  <div className="project-sub">
+                    <span className="company">{p.company}</span>
+                    <span className="dot">•</span>
+                    <span className="applied">{p.appliedDate}</span>
+                  </div>
+                </div>
+                <div className={`status-badge ${p.status === 'Completed' ? 'completed' : 'inprogress'}`}>
+                  {p.status}
+                </div>
+              </div>
+
+              <div className="project-meta">
+                <div className="meta-group">
+                  <div className="meta-item">
+                    <span className="meta-label">Due:</span>
+                    <span className="meta-value">{p.due}</span>
+                  </div>
+                </div>
+                <div className="meta-group skills">
+                  <span className="meta-label">Skills Required</span>
+                  <div className="skill-tags">
+                    {p.skills.map((s) => (
+                      <span key={s} className="skill-tag">{s}</span>
+                    ))}
+                  </div>
+                </div>
+                <div className="meta-group members">
+                  <span className="meta-label">Team Members</span>
+                  <div className="member-avatars">
+                    {p.members.map((m) => (
+                      <div key={m.initials} className="member-avatar">{m.initials}</div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="progress-row">
+                <div className="progress-bar">
+                  <div className="progress-fill" style={{ width: `${p.progress}%` }} />
+                </div>
+                <div className="progress-value">{p.progress}%</div>
+              </div>
+
+              <div className="project-actions">
+                <button className="btn-secondary small">View Details</button>
+                <button className="btn-primary small">Update Progress</button>
+              </div>
+
+              <div className="project-updated">Last updated {p.updated}</div>
+            </div>
+          ))}
+
+          {activeTab === 'posted' && postedProjects.map((p) => (
+            <div key={p.id} className="project-card">
+              <div className="project-top">
+                <div className="project-main">
+                  <h3 className="project-title">{p.title}</h3>
+                  <div className="project-sub">
+                    <span className="posted-date">{p.postedDate}</span>
+                    <span className="dot">•</span>
+                    <span className="applicants">{p.applicants} applicants</span>
+                  </div>
+                </div>
+                <div className={`status-badge ${p.statusColor}`}>
+                  {p.status}
+                </div>
+              </div>
+
+              <div className="project-description">
+                {p.description}
+              </div>
+
+              <div className="project-meta">
+                <div className="meta-group">
+                  <div className="meta-item">
+                    <span className="meta-label">Due:</span>
+                    <span className="meta-value">{p.due}</span>
+                  </div>
+                </div>
+                <div className="meta-group skills">
+                  <span className="meta-label">Skills Required</span>
+                  <div className="skill-tags">
+                    {p.skills.map((s) => (
+                      <span key={s} className="skill-tag">{s}</span>
+                    ))}
+                  </div>
+                </div>
+                <div className="meta-group members">
+                  <span className="meta-label">Selected Students</span>
+                  <div className="member-avatars">
+                    {p.selectedStudents.length > 0 ? (
+                      p.selectedStudents.map((s) => (
+                        <div key={s.initials} className="member-avatar">{s.initials}</div>
+                      ))
+                    ) : (
+                      <span className="no-students">No students selected</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="project-actions">
+                <button className="btn-secondary small">View Applicants</button>
+                <button className="btn-primary small">Manage Project</button>
+              </div>
+            </div>
+          ))}
+
+          {activeTab === 'saved' && (
+            <div className="empty-state">
+              <p>No saved projects yet</p>
+            </div>
           )}
         </div>
       </div>
-    </header>
+    </section>
   );
 };
 
-export default Header;
+export default Dashboard;
