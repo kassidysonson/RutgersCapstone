@@ -4,7 +4,6 @@ import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "./supabaseClient";
 import Header from "./components/Header.jsx";
 import Home from "./components/Home.jsx";
-import LandingPage from "./components/LandingPage.jsx";
 import Dashboard from "./components/Dashboard.jsx";
 import PostProject from "./components/PostProject.jsx";
 import StudentProfile from "./components/StudentProfile.jsx";
@@ -20,47 +19,45 @@ function App() {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // 🔹 On mount, check for active session
   useEffect(() => {
     const getSession = async () => {
       const { data } = await supabase.auth.getSession();
       setSession(data.session);
       setLoading(false);
     };
+
     getSession();
 
-    // 🔹 Watch for login/logout events
     const { data: listener } = supabase.auth.onAuthStateChange((event, newSession) => {
-      console.log("🔁 Auth event:", event, "New session:", !!newSession);
+      console.log("🔁 Auth event:", event);
 
       setSession(newSession);
 
-      // 🚫 Ignore initial session (prevents dashboard loop)
-      if (event === "INITIAL_SESSION") return;
-
       if (event === "SIGNED_IN" && newSession) {
-        console.log("✅ User just logged in");
-        if (location.pathname === "/login" || location.pathname === "/signup") {
-          navigate(`/dashboard/${newSession.user.id}`);
-        }
+        navigate(`/dashboard/${newSession.user.id}`);
       }
 
       if (event === "SIGNED_OUT") {
-        console.log("🚪 User logged out");
-        if (
-          location.pathname.startsWith("/dashboard") ||
-          location.pathname.startsWith("/post-project") ||
-          location.pathname.startsWith("/profile")
-        ) {
-          navigate("/login");
-        }
+        navigate("/login");
       }
     });
 
     return () => listener.subscription.unsubscribe();
-  }, [navigate, location.pathname]);
+  }, [navigate]);
 
-  // 🔹 Prevent access to protected routes if not logged in
+  // ✅ Always render the Header, even when loading
+  if (loading) {
+    return (
+      <div className="App">
+        <Header />
+        <div style={{ textAlign: "center", marginTop: "40px" }}>
+          Loading your dashboard...
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ Protect routes only after Supabase has finished loading
   useEffect(() => {
     if (!loading && !session) {
       const protectedRoutes = ["/dashboard", "/post-project", "/profile"];
@@ -69,10 +66,6 @@ function App() {
       }
     }
   }, [loading, session, location.pathname, navigate]);
-
-  if (loading) {
-    return <div style={{ textAlign: "center", marginTop: "40px" }}>Loading...</div>;
-  }
 
   return (
     <div className="App">
@@ -88,7 +81,6 @@ function App() {
         <Route path="/browse-projects" element={<BrowseProjects />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        
       </Routes>
     </div>
   );
