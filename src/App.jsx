@@ -88,6 +88,7 @@ function App() {
         <Route path="/browse-projects" element={<BrowseProjects />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        
       </Routes>
     </div>
   );
