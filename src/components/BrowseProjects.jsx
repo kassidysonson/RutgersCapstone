@@ -6,6 +6,7 @@ import './BrowseProjects.css';
 const BrowseProjects = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [savedProjectIds, setSavedProjectIds] = useState(new Set());
   const [filters, setFilters] = useState({
     category: [],
     skills: [],
@@ -111,6 +112,111 @@ const BrowseProjects = () => {
 
     fetchProjects();
   }, []);
+
+  // Fetch saved projects for current user
+  useEffect(() => {
+    const fetchSavedProjects = async () => {
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        if (!sessionData?.session?.user) return;
+
+        const userId = sessionData.session.user.id;
+        
+        // Try to fetch saved projects (table might not exist)
+        const { data, error } = await supabase
+          .from('saved_projects')
+          .select('project_id')
+          .eq('user_id', userId);
+
+        if (error) {
+          // If table doesn't exist, that's okay - just log and continue
+          if (error.message?.toLowerCase().includes('does not exist') || 
+              error.message?.toLowerCase().includes('could not find the table')) {
+            console.log('saved_projects table does not exist');
+            return;
+          }
+          throw error;
+        }
+
+        // Create a Set of saved project IDs
+        const savedIds = new Set((data || []).map(item => item.project_id));
+        setSavedProjectIds(savedIds);
+      } catch (error) {
+        console.error('Error fetching saved projects:', error);
+      }
+    };
+
+    fetchSavedProjects();
+  }, []);
+
+  // Handle save/unsave project
+  const handleSaveProject = async (projectId) => {
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData?.session?.user) {
+        alert('Please log in to save projects');
+        return;
+      }
+
+      const userId = sessionData.session.user.id;
+      const isSaved = savedProjectIds.has(projectId);
+
+      if (isSaved) {
+        // Unsave: Delete from saved_projects
+        const { error } = await supabase
+          .from('saved_projects')
+          .delete()
+          .eq('user_id', userId)
+          .eq('project_id', projectId);
+
+        if (error) {
+          // If table doesn't exist, just update local state
+          if (error.message?.toLowerCase().includes('does not exist') || 
+              error.message?.toLowerCase().includes('could not find the table')) {
+            const newSavedIds = new Set(savedProjectIds);
+            newSavedIds.delete(projectId);
+            setSavedProjectIds(newSavedIds);
+            return;
+          }
+          throw error;
+        }
+
+        // Update local state
+        const newSavedIds = new Set(savedProjectIds);
+        newSavedIds.delete(projectId);
+        setSavedProjectIds(newSavedIds);
+      } else {
+        // Save: Insert into saved_projects
+        const { error } = await supabase
+          .from('saved_projects')
+          .insert({
+            user_id: userId,
+            project_id: projectId,
+          });
+
+        if (error) {
+          // If table doesn't exist, just update local state (for demo purposes)
+          if (error.message?.toLowerCase().includes('does not exist') || 
+              error.message?.toLowerCase().includes('could not find the table')) {
+            const newSavedIds = new Set(savedProjectIds);
+            newSavedIds.add(projectId);
+            setSavedProjectIds(newSavedIds);
+            alert('Project saved! (Note: saved_projects table does not exist in database)');
+            return;
+          }
+          throw error;
+        }
+
+        // Update local state
+        const newSavedIds = new Set(savedProjectIds);
+        newSavedIds.add(projectId);
+        setSavedProjectIds(newSavedIds);
+      }
+    } catch (error) {
+      console.error('Error saving/unsaving project:', error);
+      alert('Error saving project: ' + (error.message || 'Please try again.'));
+    }
+  };
 
   const categories = ["Web Development", "Mobile Development", "Design", "Data Science", "Marketing"];
   const skills = ["React", "Python", "JavaScript", "UI/UX Design", "Machine Learning", "Node.js", "Figma", "SQL"];
@@ -318,7 +424,32 @@ const BrowseProjects = () => {
                     <span className="posted-date">{project.postedDate}</span>
                     <div className="project-actions">
                       <button className="btn-apply">Apply Now</button>
-                      <button className="btn-save">Save</button>
+                      <button 
+                        className="btn-save" 
+                        onClick={() => handleSaveProject(project.id)}
+                        style={{ 
+                          background: 'none', 
+                          border: 'none', 
+                          cursor: 'pointer',
+                          padding: '8px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                        title={savedProjectIds.has(project.id) ? 'Unsave project' : 'Save project'}
+                      >
+                        <svg 
+                          width="20" 
+                          height="20" 
+                          viewBox="0 0 24 24" 
+                          fill={savedProjectIds.has(project.id) ? 'currentColor' : 'none'} 
+                          stroke="currentColor" 
+                          strokeWidth="2"
+                          style={{ color: savedProjectIds.has(project.id) ? '#3b82f6' : '#6b7280' }}
+                        >
+                          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                        </svg>
+                      </button>
                     </div>
                   </div>
                 </div>
