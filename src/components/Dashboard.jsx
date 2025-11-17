@@ -259,6 +259,31 @@ const Dashboard = () => {
     };
   }, [appliedProjects, savedProjects, postedProjects]);
 
+  // Delete project handler
+  const handleDeleteProject = async (projectId, projectTitle) => {
+    if (!window.confirm(`Are you sure you want to delete "${projectTitle}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', projectId);
+
+      if (error) throw error;
+
+      // Remove the project from the local state
+      setPostedProjects(prev => prev.filter(p => p.id !== projectId));
+      
+      // Show success message
+      alert('Project deleted successfully!');
+    } catch (err) {
+      console.error('Error deleting project:', err);
+      alert('Error deleting project: ' + (err.message || 'Please try again.'));
+    }
+  };
+
   if (loading) {
     return (
       <section id="dashboard" className="dashboard">
@@ -495,6 +520,13 @@ const Dashboard = () => {
                     <div className="project-actions">
                       <button className="btn-secondary small">View Applicants</button>
                       <button className="btn-primary small">Manage Project</button>
+                      <button 
+                        className="btn-secondary small" 
+                        onClick={() => handleDeleteProject(project.id, project.title)}
+                        style={{ color: '#ef4444', borderColor: '#ef4444' }}
+                      >
+                        Delete
+                      </button>
                     </div>
                   </div>
                 ))
