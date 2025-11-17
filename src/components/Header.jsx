@@ -7,6 +7,7 @@ const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [displayName, setDisplayName] = useState("");
+  const [userId, setUserId] = useState(null);
 
   // 🔹 Logout handler
   const handleLogout = async () => {
@@ -24,6 +25,7 @@ const Header = () => {
 
       if (!session?.user) {
         setDisplayName("");
+        setUserId(null);
         return;
       }
 
@@ -43,6 +45,7 @@ const Header = () => {
         // Fallback: show email if no full_name found
         setDisplayName(userEmail);
       }
+      setUserId(userId);
     };
 
     loadProfile();
@@ -91,6 +94,11 @@ const Header = () => {
           <a href="/" className="nav-link" onClick={handleHomeClick}>
             Home
           </a>
+          {userId && (
+            <Link to={userId ? `/dashboard/${userId}` : "/dashboard"} className="nav-link">
+              Dashboard
+            </Link>
+          )}
           <Link to="/for-students" className="nav-link">
             Find Students
           </Link>
@@ -136,9 +144,9 @@ const Header = () => {
         <div className="header-actions">
           {displayName ? (
             <>
-              <span className="btn-login" style={{ cursor: "default" }}>
+              <Link to={userId ? `/dashboard/${userId}` : "/dashboard"} className="btn-login" style={{ textDecoration: "none" }}>
                 {displayName}
-              </span>
+              </Link>
               <button className="btn-signup" onClick={handleLogout}>
                 Log Out
               </button>

@@ -2,6 +2,12 @@ import React, { useEffect, useState } from "react";
 import "./App.css";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "./supabaseClient";
+
+const setGlobalSession = (value) => {
+  if (typeof window !== "undefined") {
+    window.supabaseSession = value;
+  }
+};
 import Header from "./components/Header.jsx";
 import Home from "./components/Home.jsx";
 import LandingPage from "./components/LandingPage.jsx";
@@ -25,6 +31,7 @@ function App() {
     const getSession = async () => {
       const { data } = await supabase.auth.getSession();
       setSession(data.session);
+      setGlobalSession(data.session);
       setLoading(false);
     };
     getSession();
@@ -34,18 +41,21 @@ function App() {
       console.log("🔁 Auth event:", event, "New session:", !!newSession);
 
       setSession(newSession);
+      setGlobalSession(newSession);
 
       // 🚫 Ignore initial session (prevents dashboard loop)
       if (event === "INITIAL_SESSION") return;
 
       if (event === "SIGNED_IN" && newSession) {
         console.log("✅ User just logged in");
-        if (location.pathname === "/login" || location.pathname === "/signup") {
-          navigate(`/dashboard/${newSession.user.id}`);
+        // Redirect to dashboard from login/signup pages, or if user is on home page
+        if (location.pathname === "/login" || location.pathname === "/signup" || location.pathname === "/") {
+          navigate(`/dashboard/${newSession.user.id}`, { replace: true });
         }
       }
 
       if (event === "SIGNED_OUT") {
+        setGlobalSession(null);
         console.log("🚪 User logged out");
         if (
           location.pathname.startsWith("/dashboard") ||

@@ -1,9 +1,22 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import './PostProject.css';
 import { supabase } from '../supabaseClient';
 
 const PostProject = () => {
+  const navigate = useNavigate();
+  const [userId, setUserId] = useState(null);
+  
+  useEffect(() => {
+    const getUserId = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data?.session?.user?.id) {
+        setUserId(data.session.user.id);
+      }
+    };
+    getUserId();
+  }, []);
+
   const [formData, setFormData] = useState({
     title: '',
     company: '',
@@ -38,22 +51,26 @@ const PostProject = () => {
       title: formData.title,
       description: formData.description,
       expectations: formData.skills,
-      location: 'Remote',
+      location: formData.location || 'Remote',
       compensation: formData.budget,
-      // extra columns we will add: category, duration
-      category: formData.category || null,
-      duration: formData.duration || null
     };
 
     const { error } = await supabase.from('projects').insert(row);
-    if (error) { console.error('Insert project error:', error); return; }
-    alert('Project posted');
+    if (error) { 
+      console.error('Insert project error:', error); 
+      alert('Error posting project: ' + error.message);
+      return; 
+    }
+    alert('Project posted successfully!');
+    if (userId) {
+      navigate(`/dashboard/${userId}`);
+    }
   };
 
   return (
     <div className="post-project-page">
       <div className="post-project-header">
-        <Link to="/dashboard/5" className="back-link">
+        <Link to={userId ? `/dashboard/${userId}` : "/dashboard"} className="back-link">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="m15 18-6-6 6-6"/>
           </svg>
@@ -263,7 +280,7 @@ const PostProject = () => {
             </div>
 
             <div className="form-actions">
-              <Link to="/dashboard/5" className="btn-cancel">Cancel</Link>
+              <Link to={userId ? `/dashboard/${userId}` : "/dashboard"} className="btn-cancel">Cancel</Link>
               <button type="submit" className="btn-post">Post Project</button>
             </div>
           </form>

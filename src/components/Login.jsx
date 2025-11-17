@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import "./Login.css";
@@ -8,6 +8,26 @@ function Login() {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
+
+  // Check if user is already signed in and redirect to dashboard
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data?.session?.user) {
+        navigate(`/dashboard/${data.session.user.id}`);
+      }
+    };
+    checkSession();
+
+    // Also listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session?.user) {
+        navigate(`/dashboard/${session.user.id}`);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,13 +40,15 @@ function Login() {
     setMessage("🔄 Sending magic link to your email...");
 
     try {
+      const redirectUrl =
+        process.env.NODE_ENV === "production"
+          ? "https://rutgers-app-b05a48dc4dbb.herokuapp.com/login"
+          : "http://localhost:3000/login";
+
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo:
-            process.env.NODE_ENV === "production"
-              ? "https://rutgers-app-b05a48dc4dbb.herokuapp.com"
-              : "http://localhost:3000",
+          emailRedirectTo: redirectUrl,
         },
       });
 
