@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { supabase } from '../supabaseClient';
 import './BrowseProjects.css';
 
 const BrowseProjects = () => {
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     category: [],
     skills: [],
@@ -11,69 +14,103 @@ const BrowseProjects = () => {
 
   const [activeFilters, setActiveFilters] = useState([]);
 
-  // Mock project data
-  const projects = [
-    {
-      id: 1,
-      title: "E-commerce Mobile App Development",
-      company: "ShopFlow Startup",
-      description: "Looking for a skilled developer to build a modern e-commerce mobile application with React Native. The app should include user authentication, product catalog, shopping cart, and payment integration.",
-      skills: ["React Native", "JavaScript", "API Integration", "UI/UX Design"],
-      duration: "3-6 months",
-      postedDate: "Posted 2 days ago",
-      applicants: 12,
-      location: "Remote",
-      category: "Mobile Development"
-    },
-    {
-      id: 2,
-      title: "Brand Identity Design Package",
-      company: "TechVision",
-      description: "Need a creative designer to develop a complete brand identity for our tech startup. This includes logo design, color palette, typography, and brand guidelines.",
-      skills: ["Logo Design", "Branding", "Adobe Illustrator", "Creative Suite"],
-      duration: "1-2 months",
-      postedDate: "Posted 1 week ago",
-      applicants: 8,
-      location: "Remote",
-      category: "Design"
-    },
-    {
-      id: 3,
-      title: "Data Analytics Dashboard",
-      company: "DataCorp",
-      description: "Seeking a data scientist to create an interactive dashboard for business analytics. Must have experience with Python, SQL, and data visualization tools.",
-      skills: ["Python", "SQL", "Data Visualization", "Machine Learning"],
-      duration: "2-4 months",
-      postedDate: "Posted 3 days ago",
-      applicants: 15,
-      location: "Hybrid",
-      category: "Data Science"
-    },
-    {
-      id: 4,
-      title: "Social Media Management Tool",
-      company: "SocialBoost",
-      description: "Looking for a full-stack developer to build a social media scheduling and analytics platform. Should include content calendar, post scheduling, and performance analytics.",
-      skills: ["React", "Node.js", "MongoDB", "API Integration"],
-      duration: "4-6 months",
-      postedDate: "Posted 5 days ago",
-      applicants: 20,
-      location: "Remote",
-      category: "Web Development"
-    },
-    {
-      id: 5,
-      title: "Mobile App UI/UX Design",
-      company: "FitnessApp",
-      description: "Need a UI/UX designer to create wireframes and high-fidelity designs for a fitness tracking mobile application. Focus on user experience and modern design principles.",
-      skills: ["Figma", "Mobile Design", "User Research", "Prototyping"],
-      duration: "2-3 months",
-      postedDate: "Posted 1 week ago",
-      applicants: 6,
-      location: "Remote",
-      category: "Design"
-    }
-  ];
+  // Fetch projects from Supabase
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        // Fetch projects
+        const { data: projectsData, error: projectsError } = await supabase
+          .from('projects')
+          .select('id, title, description, expectations, location, compensation, created_at, owner_id')
+          .order('created_at', { ascending: false });
+
+        if (projectsError) throw projectsError;
+
+        // Fetch owner information for all projects
+        const ownerIds = [...new Set((projectsData || []).map(p => p.owner_id).filter(Boolean))];
+        let ownersData = {};
+        if (ownerIds.length > 0) {
+          const { data: owners } = await supabase
+            .from('users')
+            .select('id, full_name, email')
+            .in('id', ownerIds);
+          
+          (owners || []).forEach(owner => {
+            ownersData[owner.id] = owner;
+          });
+        }
+
+        // Fetch application counts for each project
+        const projectIds = projectsData?.map(p => p.id) || [];
+        let applicationsData = [];
+        if (projectIds.length > 0) {
+          const { data } = await supabase
+            .from('applications')
+            .select('project_id')
+            .in('project_id', projectIds);
+          applicationsData = data || [];
+        }
+
+        // Count applications per project
+        const applicationCounts = {};
+        applicationsData?.forEach(app => {
+          applicationCounts[app.project_id] = (applicationCounts[app.project_id] || 0) + 1;
+        });
+
+        // Transform data to match the display format
+        const formattedProjects = (projectsData || []).map(project => {
+          // Parse skills from expectations (comma-separated string)
+          const skills = project.expectations
+            ? project.expectations.split(',').map(s => s.trim()).filter(Boolean)
+            : [];
+
+          // Format date as "Posted X days ago"
+          const formatPostedDate = (dateString) => {
+            if (!dateString) return 'Posted recently';
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffTime = Math.abs(now - date);
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 0) return 'Posted today';
+            if (diffDays === 1) return 'Posted 1 day ago';
+            if (diffDays < 7) return `Posted ${diffDays} days ago`;
+            if (diffDays < 14) return 'Posted 1 week ago';
+            if (diffDays < 30) return `Posted ${Math.floor(diffDays / 7)} weeks ago`;
+            if (diffDays < 60) return 'Posted 1 month ago';
+            return `Posted ${Math.floor(diffDays / 30)} months ago`;
+          };
+
+          // Get company/owner name
+          const owner = ownersData[project.owner_id];
+          const company = owner?.full_name || owner?.email?.split('@')[0] || 'Unknown';
+
+          return {
+            id: project.id,
+            title: project.title,
+            company: company,
+            description: project.description,
+            skills: skills,
+            duration: 'Flexible', // Not in schema, using placeholder
+            postedDate: formatPostedDate(project.created_at),
+            applicants: applicationCounts[project.id] || 0,
+            location: project.location || 'Remote',
+            category: 'General', // Not in schema, using placeholder
+            owner_id: project.owner_id,
+          };
+        });
+
+        setProjects(formattedProjects);
+      } catch (error) {
+        console.error('Error fetching projects:', error);
+        setProjects([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, []);
 
   const categories = ["Web Development", "Mobile Development", "Design", "Data Science", "Marketing"];
   const skills = ["React", "Python", "JavaScript", "UI/UX Design", "Machine Learning", "Node.js", "Figma", "SQL"];
@@ -236,7 +273,13 @@ const BrowseProjects = () => {
           </div>
 
           <div className="projects-grid">
-            {getFilteredProjects().length > 0 ? (
+            {loading ? (
+              <div className="no-results">
+                <div className="no-results-content">
+                  <p>Loading projects...</p>
+                </div>
+              </div>
+            ) : getFilteredProjects().length > 0 ? (
               getFilteredProjects().map(project => (
                 <div key={project.id} className="project-card">
                   <div className="project-header">
@@ -251,9 +294,13 @@ const BrowseProjects = () => {
                   <p className="project-description">{project.description}</p>
 
                   <div className="project-skills">
-                    {project.skills.map(skill => (
-                      <span key={skill} className="skill-tag">{skill}</span>
-                    ))}
+                    {project.skills && project.skills.length > 0 ? (
+                      project.skills.map(skill => (
+                        <span key={skill} className="skill-tag">{skill}</span>
+                      ))
+                    ) : (
+                      <span className="skill-tag">No skills specified</span>
+                    )}
                   </div>
 
                   <div className="project-details">

@@ -3,6 +3,7 @@ import Hero from './Hero.jsx';
 import HowItWorks from './HowItWorks.jsx';
 import PerfectForStudents from './PerfectForStudents.jsx';
 import BottomSection from './BottomSection.jsx';
+import LandingPage from './LandingPage.jsx';
 
 const Home = () => {
   return (
@@ -11,6 +12,7 @@ const Home = () => {
       <HowItWorks />
       <PerfectForStudents />
       <BottomSection />
+  
     </div>
   );
 };

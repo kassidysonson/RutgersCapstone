@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "../supabaseClient";
-import "./Form.css";
+import "./Signup.css";
 
 function Signup() {
   const [firstName, setFirstName] = useState("");
@@ -12,6 +12,26 @@ function Signup() {
   const [message, setMessage] = useState("");
 
   const navigate = useNavigate();
+
+  // Check if user is already signed in and redirect to dashboard
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data?.session?.user) {
+        navigate(`/dashboard/${data.session.user.id}`);
+      }
+    };
+    checkSession();
+
+    // Also listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session?.user) {
+        navigate(`/dashboard/${session.user.id}`);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,16 +44,19 @@ function Signup() {
     setMessage("🔄 Sending magic link to your email...");
 
     try {
+      const redirectUrl =
+        process.env.NODE_ENV === "production"
+          ? "https://rutgers-app-b05a48dc4dbb.herokuapp.com/login"
+          : "http://localhost:3000/login";
+
       const { error } = await supabase.auth.signInWithOtp({
-        email: email,
+        email,
         options: {
-          emailRedirectTo: `${window.location.origin}/login`
-        }
+          emailRedirectTo: redirectUrl,
+        },
       });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       setMessage("✅ Check your email for a magic link to sign in.");
       setTimeout(() => navigate("/login"), 1500);
@@ -44,36 +67,100 @@ function Signup() {
   };
 
   return (
-    <div className="container">
-      <div className="card">
-        <h1>Join JoinUP</h1>
-        <p className="subtitle">Connect with motivated students and innovative ideas</p>
+    <div className="signup-page">
+      {/* Header */}
+      <header className="signup-header">
+        <div className="signup-header-container">
+          <Link to="/" className="signup-logo">JoinUp</Link>
+        </div>
+        <div className="signup-header-separator"></div>
+      </header>
 
-        <form onSubmit={handleSubmit}>
-          <div className="row">
-            <input type="text" placeholder="First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
-            <input type="text" placeholder="Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)} />
-          </div>
+      {/* Main Content */}
+      <main className="signup-main">
+        <div className="signup-form-container">
+          <h1 className="signup-heading">Join JoinUp.</h1>
+          <p className="signup-subtitle">Create your account to start connecting</p>
 
-          <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-          <input type="password" placeholder="Password (unused for magic link)" value={password} onChange={(e) => setPassword(e.target.value)} />
+          <form onSubmit={handleSubmit} className="signup-form">
+            <div className="signup-form-group">
+              <label htmlFor="firstName" className="signup-label">First Name</label>
+              <input
+                type="text"
+                id="firstName"
+                className="signup-input"
+                placeholder="First name"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+              />
+            </div>
 
-          <select value={heardFrom} onChange={(e) => setHeardFrom(e.target.value)}>
-            <option value="">How did you hear about us?</option>
-            <option>Community Event / Fair</option>
-            <option>Friend</option>
-            <option>Social Media</option>
-          </select>
+            <div className="signup-form-group">
+              <label htmlFor="lastName" className="signup-label">Last Name</label>
+              <input
+                type="text"
+                id="lastName"
+                className="signup-input"
+                placeholder="Last name"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+              />
+            </div>
 
-          <button type="submit" className="solid-button">Continue</button>
-        </form>
+            <div className="signup-form-group">
+              <label htmlFor="email" className="signup-label">Email</label>
+              <input
+                type="email"
+                id="email"
+                className="signup-input"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
 
-        {message && <p className="message">{message}</p>}
+            <div className="signup-form-group">
+              <label htmlFor="password" className="signup-label">Password</label>
+              <input
+                type="password"
+                id="password"
+                className="signup-input"
+                placeholder="Create a password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
 
-        <p className="footer-text">
-          Already have an account? <a href="/login">Sign in here</a>
-        </p>
-      </div>
+            <div className="signup-form-group">
+              <label htmlFor="heardFrom" className="signup-label">How Did You Hear About Us?</label>
+              <select
+                id="heardFrom"
+                className="signup-input signup-select"
+                value={heardFrom}
+                onChange={(e) => setHeardFrom(e.target.value)}
+              >
+                <option value="">Select an option</option>
+                <option value="Community Event / Fair">Community Event / Fair</option>
+                <option value="Friend">Friend</option>
+                <option value="Social Media">Social Media</option>
+              </select>
+            </div>
+
+            {message && <p className="signup-message">{message}</p>}
+
+            <button type="submit" className="signup-button">Create account</button>
+
+            <p className="signup-account-link">
+              Already have an account? <Link to="/login" className="signup-link">Sign in</Link>
+            </p>
+
+            <p className="signup-legal">
+              By creating an account, you agree to our <a href="#" className="signup-legal-link">Terms of Service</a> and <a href="#" className="signup-legal-link">Privacy Policy</a>
+            </p>
+          </form>
+        </div>
+      </main>
     </div>
   );
 }
