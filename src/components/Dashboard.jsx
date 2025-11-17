@@ -7,7 +7,16 @@ const doesTableExistError = (error) => {
   if (!error) return false;
   const message = (error.message || '').toLowerCase();
   const details = (error.details || '').toLowerCase();
-  return message.includes('does not exist') || details.includes('does not exist');
+  const code = (error.code || '').toLowerCase();
+  
+  return (
+    message.includes('does not exist') ||
+    message.includes('could not find the table') ||
+    message.includes('relation') && message.includes('does not exist') ||
+    details.includes('does not exist') ||
+    details.includes('could not find the table') ||
+    code === '42p01' // PostgreSQL error code for "undefined table"
+  );
 };
 
 const splitSkills = (value) =>
@@ -69,15 +78,27 @@ const Dashboard = () => {
     let ignore = false;
 
     const fetchOptional = async (queryBuilder, transform = (rows) => rows ?? []) => {
-      const { data, error: queryError } = await queryBuilder;
-      if (queryError) {
-        if (doesTableExistError(queryError)) {
-          console.warn('[Dashboard] Optional table missing:', queryError.message);
+      try {
+        const { data, error: queryError } = await queryBuilder;
+        if (queryError) {
+          if (doesTableExistError(queryError)) {
+            console.warn('[Dashboard] Optional table missing:', queryError.message);
+            return [];
+          }
+          // For other errors, log but don't throw - return empty array
+          console.warn('[Dashboard] Query error (non-fatal):', queryError.message);
           return [];
         }
-        throw queryError;
+        return transform(data ?? []);
+      } catch (err) {
+        // Catch any unexpected errors
+        if (doesTableExistError(err)) {
+          console.warn('[Dashboard] Optional table missing (caught):', err.message);
+          return [];
+        }
+        console.warn('[Dashboard] Unexpected error (non-fatal):', err.message);
+        return [];
       }
-      return transform(data ?? []);
     };
 
     const loadDashboard = async () => {
@@ -147,7 +168,8 @@ const Dashboard = () => {
           )
           .eq('user_id', currentUser.id);
 
-        const [profileResult, postedRows, appliedRows, savedRows] = await Promise.all([
+        // Use Promise.allSettled to handle errors gracefully
+        const results = await Promise.allSettled([
           fetchOptional(profilePromise, (data) => data || null),
           fetchOptional(postedPromise, normalizePostedProjects),
           fetchOptional(appliedPromise, (rows) =>
@@ -167,6 +189,19 @@ const Dashboard = () => {
             }))
           ),
         ]);
+        
+        // Log any rejected promises for debugging
+        results.forEach((result, index) => {
+          if (result.status === 'rejected') {
+            const names = ['profile', 'posted projects', 'applied projects', 'saved projects'];
+            console.warn(`[Dashboard] ${names[index]} query rejected:`, result.reason);
+          }
+        });
+        
+        const profileResult = results[0].status === 'fulfilled' ? results[0].value : null;
+        const postedRows = results[1].status === 'fulfilled' ? results[1].value : [];
+        const appliedRows = results[2].status === 'fulfilled' ? results[2].value : [];
+        const savedRows = results[3].status === 'fulfilled' ? results[3].value : [];
 
         if (ignore) {
           return;
