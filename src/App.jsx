@@ -19,6 +19,7 @@ import BrowseProjects from "./components/BrowseProjects.jsx";
 import Login from "./components/Login.jsx";
 import Signup from "./components/Signup.jsx";
 import About from "./components/About.jsx";
+import HowItWorksPage from "./components/HowItWorksPage.jsx";
 
 function App() {
   const navigate = useNavigate();
@@ -98,6 +99,7 @@ function App() {
         <Route path="/browse-projects" element={<BrowseProjects />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/how-it-works" element={<HowItWorksPage />} />
         
       </Routes>
     </div>

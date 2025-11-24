@@ -77,7 +77,7 @@ const Header = () => {
 
   const handleHowItWorksClick = (e) => {
     e.preventDefault();
-    navigate("/#how-it-works");
+    navigate("/how-it-works");
   };
 
   // Hide header on login/signup/landing and root (landing page)
@@ -117,13 +117,12 @@ const Header = () => {
           <Link to="/about" className="nav-link">
             Our Story
           </Link>
-          <a
-            href="./how-it-works"
+          <Link
+            to="/how-it-works"
             className="nav-link"
-            onClick={handleHowItWorksClick}
           >
             How it Works
-          </a>
+          </Link>
         </nav>
 
         {/* Search Bar */}
