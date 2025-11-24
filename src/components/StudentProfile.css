@@ -160,13 +160,17 @@
   gap: 16px;
 }
 
-.section-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #111827;
-  margin: 0;
-  font-family: sans-serif;
-  text-align: left;
+.profile-section .section-title,
+.profile-section h3.section-title {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #111827 !important;
+  margin: 0 0 12px 0 !important;
+  font-family: sans-serif !important;
+  text-align: left !important;
+  line-height: 1.4 !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
 }
 
 .profile-description {
