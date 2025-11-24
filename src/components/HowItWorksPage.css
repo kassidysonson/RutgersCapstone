@@ -12,7 +12,7 @@
 /* Header Section */
 .how-it-works-header {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 60px;
 }
 
 .back-link {
@@ -50,7 +50,7 @@
 
 /* Tutorial Video Section */
 .tutorial-video-section {
-  margin-top: 40px;
+  margin-top: 0;
   margin-bottom: 80px;
 }
 
