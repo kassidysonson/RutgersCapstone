@@ -27,7 +27,7 @@ const HowItWorksPage = () => {
 
         {/* Tutorial Video Section */}
         <div className="tutorial-video-section">
-          <h2 className="section-title">Tutorial Video</h2>
+  
           <div className="video-wrapper">
             <video
               ref={videoRef}
