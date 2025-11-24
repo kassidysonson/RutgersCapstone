@@ -152,45 +152,27 @@
   display: flex;
   flex-direction: column;
   gap: 32px;
-  text-align: left;
 }
 
 .profile-section {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  text-align: left;
 }
 
-<<<<<<< HEAD
 .section-title {
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 600;
   color: #111827;
   margin: 0;
   font-family: sans-serif;
-  text-align: left;
-=======
-.profile-section .section-title,
-.profile-section h3.section-title {
-  font-size: 13px !important;
-  font-weight: 600 !important;
-  color: #111827 !important;
-  margin: 0 0 12px 0 !important;
-  font-family: sans-serif !important;
-  text-align: left !important;
-  line-height: 1.4 !important;
-  text-transform: none !important;
-  letter-spacing: normal !important;
->>>>>>> e7d25adb4eb73170d00c415d84b91e30395237a7
 }
 
 .profile-description {
-  font-size: 14px;
+  font-size: 16px;
   color: #374151;
   line-height: 1.6;
   margin: 0;
-  text-align: left;
 }
 
 .skills-grid {
@@ -202,9 +184,9 @@
 .skill-tag-large {
   background-color: #f3f4f6;
   color: #111827;
-  padding: 6px 12px;
+  padding: 8px 16px;
   border-radius: 20px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
   border: 1px solid #e5e7eb;
 }
@@ -222,13 +204,13 @@
 }
 
 .experience-label {
-  font-size: 12px;
+  font-size: 14px;
   color: #6b7280;
   font-weight: 500;
 }
 
 .experience-value {
-  font-size: 14px;
+  font-size: 16px;
   color: #111827;
   font-weight: 600;
 }
@@ -244,7 +226,7 @@
   color: #0369a1;
   padding: 6px 12px;
   border-radius: 16px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
 }
 
