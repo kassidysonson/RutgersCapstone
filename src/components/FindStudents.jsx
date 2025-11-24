@@ -69,8 +69,6 @@ const FindStudents = () => {
     fetchStudents();
   }, []);
 
- 
-
   const majors = ["Computer Science", "Business", "Design", "Engineering", "Marketing", "Data Science"];
   const skills = ["React", "Python", "JavaScript", "UI/UX Design", "Node.js", "Figma", "Machine Learning"];
   const availabilityOptions = ["Available now", "Within 1 week", "Within 1 month", "Flexible"];
