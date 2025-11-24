@@ -405,7 +405,7 @@ const BrowseProjects = () => {
                   <div className="project-skills">
                     {project.skills && project.skills.length > 0 ? (
                       project.skills.map(skill => (
-                        <span key={skill} className="skill-tag">{skill}</span>
+                      <span key={skill} className="skill-tag">{skill}</span>
                       ))
                     ) : (
                       <span className="skill-tag">No skills specified</span>

@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { supabase } from '../supabaseClient';
 import './StudentProfile.css';
 
 const StudentProfile = () => {
   const { id } = useParams();
+  const [student, setStudent] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [messageData, setMessageData] = useState({
     subject: '',
@@ -12,121 +16,108 @@ const StudentProfile = () => {
     senderName: ''
   });
 
-  // Student data (same as in FindStudents)
-  const students = [
-    {
-      id: 1,
-      name: "Sarah Chen",
-      major: "Computer Science",
-      year: "Junior",
-      location: "Stanford, CA",
-      rating: 4.9,
-      reviewCount: 12,
-      description: "Full-stack developer with experience in modern web technologies. Passionate about creating user-friendly applications and solving complex problems.",
-      skills: ["React", "Python", "UI/UX Design", "Machine Learning"],
-      availability: "20 hrs/week",
-      projectsCompleted: 8,
-      profileImage: "SC",
-      email: "sarah.chen@stanford.edu",
-      phone: "(650) 555-0123",
-      linkedin: "linkedin.com/in/sarahchen",
-      github: "github.com/sarahchen",
-      portfolio: "sarahchen.dev",
-      experience: "3 years",
-      languages: ["English", "Mandarin"],
-      timezone: "PST"
-    },
-    {
-      id: 2,
-      name: "Marcus Johnson",
-      major: "Business Administration",
-      year: "Senior",
-      location: "Boston, MA",
-      rating: 4.8,
-      reviewCount: 15,
-      description: "Marketing specialist with a focus on digital strategies and brand development. Experienced in content creation and social media management.",
-      skills: ["Marketing", "Content Writing", "Social Media", "Analytics"],
-      availability: "15 hrs/week",
-      projectsCompleted: 12,
-      profileImage: "MJ",
-      email: "marcus.johnson@bu.edu",
-      phone: "(617) 555-0456",
-      linkedin: "linkedin.com/in/marcusjohnson",
-      twitter: "@marcusj_marketing",
-      portfolio: "marcusjohnson.com",
-      experience: "4 years",
-      languages: ["English", "Spanish"],
-      timezone: "EST"
-    },
-    {
-      id: 3,
-      name: "Emma Rodriguez",
-      major: "Graphic Design",
-      year: "Sophomore",
-      location: "Austin, TX",
-      rating: 4.7,
-      reviewCount: 8,
-      description: "Creative designer focused on brand identity and user experience. Looking to gain experience in startup environments.",
-      skills: ["Figma", "Adobe Creative Suite", "Branding", "Web Design"],
-      availability: "25 hrs/week",
-      projectsCompleted: 5,
-      profileImage: "ER",
-      email: "emma.rodriguez@utexas.edu",
-      phone: "(512) 555-0789",
-      linkedin: "linkedin.com/in/emmarodriguez",
-      behance: "behance.net/emmarodriguez",
-      portfolio: "emmarodriguez.design",
-      experience: "2 years",
-      languages: ["English", "Spanish"],
-      timezone: "CST"
-    },
-    {
-      id: 4,
-      name: "David Kim",
-      major: "Data Science",
-      year: "Graduate",
-      location: "Seattle, WA",
-      rating: 5.0,
-      reviewCount: 20,
-      description: "Data scientist with expertise in predictive modeling and analytics. Published research in ML conferences.",
-      skills: ["Python", "R", "Machine Learning", "Data Visualization"],
-      availability: "30 hrs/week",
-      projectsCompleted: 15,
-      profileImage: "DK",
-      email: "david.kim@uw.edu",
-      phone: "(206) 555-0321",
-      linkedin: "linkedin.com/in/davidkim",
-      github: "github.com/davidkim",
-      portfolio: "davidkim.ai",
-      experience: "5 years",
-      languages: ["English", "Korean"],
-      timezone: "PST"
-    },
-    {
-      id: 5,
-      name: "Galathara Kahanda",
-      major: "Computer Science",
-      year: "Graduate",
-      location: "Newark, NJ",
-      rating: 5.0,
-      reviewCount: 3,
-      description: "My research lies at the intersection of AI, ML, and cybersecurity, with the overarching goal of developing intelligent, adaptive, and robust systems that can operate securely in adversarial environments.",
-      skills: ["React", "Python", "UI/UX Design", "Machine Learning"],
-      availability: "20 hrs/week",
-      projectsCompleted: 3,
-      profileImage: "GK",
-      email: "galathara.kahanda@rutgers.edu",
-      phone: "(973) 555-0654",
-      linkedin: "linkedin.com/in/galatharakahanda",
-      github: "github.com/galathara",
-      portfolio: "kahanda.dev",
-      experience: "2 years",
-      languages: ["English", "Creole"],
-      timezone: "EST"
+  // Helper function to get initials from name
+  const getInitials = (name) => {
+    if (!name) return 'U';
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     }
-  ];
+    return name.substring(0, 2).toUpperCase();
+  };
 
-  const student = students.find(s => s.id === parseInt(id));
+  // Fetch student profile from Supabase
+  useEffect(() => {
+    const fetchStudentProfile = async () => {
+      if (!id) {
+        setError('No user ID provided');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Fetch user data from users table
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', id)
+          .maybeSingle();
+
+        if (userError && userError.code !== 'PGRST116') {
+          throw userError;
+        }
+
+        if (!userData) {
+          setError('User profile not found');
+          setLoading(false);
+          return;
+        }
+
+        // Get email from auth if not in userData
+        let email = userData.email;
+        if (!email) {
+          // Try to get from auth.users (this might not work due to RLS, but worth trying)
+          const { data: authData } = await supabase.auth.getUser(id);
+          email = authData?.user?.email || '';
+        }
+
+        // Parse skills from comma-separated string
+        const skills = userData.skills
+          ? userData.skills.split(',').map(s => s.trim()).filter(Boolean)
+          : [];
+
+        // Get profile image or generate initials
+        const profileImage = userData.profile_image || getInitials(userData.full_name || email);
+
+        // Map experience_level to experience string
+        const experienceMap = {
+          'Beginner': '1-2 years',
+          'Intermediate': '3-4 years',
+          'Advanced': '5+ years'
+        };
+        const experience = experienceMap[userData.experience_level] || '1-2 years';
+
+        // Format student data
+        const formattedStudent = {
+          id: userData.id,
+          name: userData.full_name || email?.split('@')[0] || 'User',
+          major: userData.major || 'Not specified',
+          year: userData.academic_year || 'Not specified',
+          location: userData.location || 'Not specified',
+          rating: userData.rating || 0,
+          reviewCount: userData.review_count || 0,
+          description: userData.bio || 'No bio available.',
+          skills: skills,
+          availability: userData.availability || 'Not specified',
+          projectsCompleted: userData.projects_completed || 0,
+          profileImage: profileImage,
+          email: email || 'No email available',
+          // Fields not in database - set to null/empty
+          phone: null,
+          linkedin: null,
+          github: null,
+          portfolio: null,
+          twitter: null,
+          behance: null,
+          experience: experience,
+          languages: ['English'], // Default, not in database
+          timezone: 'Not specified' // Not in database
+        };
+
+        setStudent(formattedStudent);
+      } catch (err) {
+        console.error('Error fetching student profile:', err);
+        setError(err.message || 'Failed to load profile');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStudentProfile();
+  }, [id]);
 
   const handleSendMessage = () => {
     setShowMessageModal(true);
@@ -165,10 +156,18 @@ const StudentProfile = () => {
     handleCloseModal();
   };
 
-  if (!student) {
+  if (loading) {
     return (
       <div className="profile-not-found">
-        <h2>Student not found</h2>
+        <h2>Loading profile...</h2>
+      </div>
+    );
+  }
+
+  if (error || !student) {
+    return (
+      <div className="profile-not-found">
+        <h2>{error || 'Student not found'}</h2>
         <Link to="/#find-students">← Back to Find Students</Link>
       </div>
     );
@@ -213,9 +212,13 @@ const StudentProfile = () => {
               <div className="profile-section">
                 <h3 className="section-title">Skills</h3>
                 <div className="skills-grid">
-                  {student.skills.map(skill => (
-                    <span key={skill} className="skill-tag-large">{skill}</span>
-                  ))}
+                  {student.skills && student.skills.length > 0 ? (
+                    student.skills.map(skill => (
+                      <span key={skill} className="skill-tag-large">{skill}</span>
+                    ))
+                  ) : (
+                    <span className="skill-tag-large" style={{ opacity: 0.6 }}>No skills specified</span>
+                  )}
                 </div>
               </div>
 
@@ -258,10 +261,12 @@ const StudentProfile = () => {
                   <span className="contact-label">Email</span>
                   <a href={`mailto:${student.email}`} className="contact-link">{student.email}</a>
                 </div>
-                <div className="contact-item">
-                  <span className="contact-label">Phone</span>
-                  <a href={`tel:${student.phone}`} className="contact-link">{student.phone}</a>
-                </div>
+                {student.phone && (
+                  <div className="contact-item">
+                    <span className="contact-label">Phone</span>
+                    <a href={`tel:${student.phone}`} className="contact-link">{student.phone}</a>
+                  </div>
+                )}
                 {student.linkedin && (
                   <div className="contact-item">
                     <span className="contact-label">LinkedIn</span>
