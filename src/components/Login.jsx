@@ -5,7 +5,6 @@ import "./Login.css";
 
 function Login() {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
 
@@ -90,18 +89,6 @@ function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-              />
-            </div>
-
-            <div className="login-form-group">
-              <label htmlFor="password" className="login-label">Password</label>
-              <input
-                type="password"
-                id="password"
-                className="login-input"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
               />
             </div>
 
