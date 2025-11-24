@@ -19,7 +19,10 @@
   max-width: 600px;
   max-height: 90vh;
   overflow-y: auto;
+  overflow-x: visible;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  position: relative;
+  z-index: 1001;
 }
 
 .edit-profile-header {
@@ -60,10 +63,23 @@
 
 .edit-profile-form {
   padding: 24px;
+  position: relative;
+  z-index: 1;
 }
 
 .form-group {
   margin-bottom: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Ensure university dropdown appears correctly */
+.form-group:has(.form-select) {
+  z-index: 10;
+}
+
+.form-group:has(.form-select:focus) {
+  z-index: 20;
 }
 
 .form-row {
@@ -93,6 +109,17 @@
   font-size: 14px;
   font-family: inherit;
   transition: border-color 0.2s;
+  position: relative;
+  z-index: 1;
+}
+
+.form-select {
+  position: relative;
+  z-index: 10;
+}
+
+.form-select:focus {
+  z-index: 11;
 }
 
 .form-input:focus,
