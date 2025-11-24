@@ -153,9 +153,10 @@ const Header = () => {
         <div className="header-actions">
           {displayName ? (
             <>
-              <Link 
-                to={userId ? `/dashboard/${userId}` : "/dashboard"} 
+              <button 
+                onClick={() => setShowEditProfile(true)}
                 className="header-profile-link"
+                style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
               >
                 <div className="header-profile">
                   <div className="header-profile-icon">
@@ -175,7 +176,7 @@ const Header = () => {
                     {firstName ? `Hi, ${firstName}` : displayName}
                   </span>
                 </div>
-              </Link>
+              </button>
               <button className="btn-signup" onClick={handleLogout}>
                 Log Out
               </button>
