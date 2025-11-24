@@ -1,6 +1,8 @@
 import React, { useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import About from './About.jsx';
 import './LandingPage.css';
+import './About.css';
 
 const LandingPage = () => {
   const videoRef = useRef(null);
@@ -29,53 +31,57 @@ const LandingPage = () => {
   }, []);
 
   return (
-    <div className="landing-page">
-      {/* Video Background */}
-      <video
-        ref={videoRef}
-        className="landing-video-bg"
-        src="/landingpage.mp4"
-        muted
-        playsInline
-        loop={false}
-      />
+    <div className="landing-page-wrapper">
+      {/* Landing Hero Section with Video */}
+      <div className="landing-page">
+        {/* Video Background */}
+        <video
+          ref={videoRef}
+          className="landing-video-bg"
+          src="/landingpage.mp4"
+          muted
+          playsInline
+          loop={false}
+        />
 
-      {/* Overlay for better text readability */}
-      <div className="landing-overlay"></div>
+        {/* Overlay for better text readability */}
+        <div className="landing-overlay"></div>
 
-      {/* Header */}
-      <header className="landing-header">
-        <div className="landing-header-container">
-          <Link to="/" className="landing-logo">JoinUp</Link>
-          <nav className="landing-nav">
-            <a href="#" className="landing-nav-link">Connect</a>
-            <a href="#" className="landing-nav-link">Collaborate</a>
-            <Link to="/about" className="landing-nav-link">Our Story</Link>
-            <a href="#" className="landing-nav-link">Blog</a>
-            <Link to="/login" className="landing-nav-link">Log In</Link>
-          </nav>
-          <Link to="/signup">
-            <button className="landing-btn-get-started">Sign Up</button>
-          </Link>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="landing-main">
-        <div className="landing-content-wrapper">
-          <div className="landing-left">
-            <h1 className="landing-headline">
-              Become a Innovator
-            </h1>
-            <p className="landing-description">
-              Your Journey Starts Here
-            </p>
-            <Link to="/signup">
-              <button className="landing-btn-start-connecting">Get Started</button>
-            </Link>
+        {/* Header */}
+        <header className="landing-header">
+          <div className="landing-header-container">
+            <Link to="/" className="landing-logo">JoinUp</Link>
+            <div className="landing-header-actions">
+              <Link to="/login">
+                <button className="landing-btn-login">Log In</button>
+              </Link>
+              <Link to="/signup">
+                <button className="landing-btn-get-started">Sign Up</button>
+              </Link>
+            </div>
           </div>
-        </div>
-      </main>
+        </header>
+
+        {/* Main Content */}
+        <main className="landing-main">
+          <div className="landing-content-wrapper">
+            <div className="landing-left">
+              <h1 className="landing-headline">
+                Become a Innovator
+              </h1>
+              <p className="landing-description">
+                Your Journey Starts Here
+              </p>
+              <Link to="/signup">
+                <button className="landing-btn-start-connecting">Get Started</button>
+              </Link>
+            </div>
+          </div>
+        </main>
+      </div>
+
+      {/* About Section */}
+      <About />
     </div>
   );
 };

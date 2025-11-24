@@ -1,6 +1,8 @@
 .about-page {
   background-color: #ffffff;
   color: #1a1a1a;
+  position: relative;
+  z-index: 2;
 }
 
 .about-hero {
