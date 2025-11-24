@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import './Dashboard.css';
 
@@ -73,6 +73,9 @@ const Dashboard = () => {
   const [savedProjects, setSavedProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [selectedProjectId, setSelectedProjectId] = useState(null);
+  const [applications, setApplications] = useState([]);
+  const [loadingApplications, setLoadingApplications] = useState(false);
 
   useEffect(() => {
     let ignore = false;
@@ -282,6 +285,65 @@ const Dashboard = () => {
       console.error('Error deleting project:', err);
       alert('Error deleting project: ' + (err.message || 'Please try again.'));
     }
+  };
+
+  // View applicants handler
+  const handleViewApplicants = async (projectId) => {
+    setSelectedProjectId(projectId);
+    setLoadingApplications(true);
+    setApplications([]);
+
+    try {
+      // Fetch applications for this project with applicant details
+      const { data: applicationsData, error: applicationsError } = await supabase
+        .from('applications')
+        .select(`
+          *,
+          applicant:applicant_id (
+            id,
+            full_name,
+            email,
+            university,
+            bio,
+            major,
+            academic_year,
+            location,
+            skills,
+            availability,
+            profile_image,
+            rating,
+            review_count,
+            projects_completed,
+            experience_level
+          )
+        `)
+        .eq('project_id', projectId)
+        .order('created_at', { ascending: false });
+
+      if (applicationsError) throw applicationsError;
+
+      setApplications(applicationsData || []);
+    } catch (err) {
+      console.error('Error fetching applications:', err);
+      alert('Error loading applications: ' + (err.message || 'Please try again.'));
+    } finally {
+      setLoadingApplications(false);
+    }
+  };
+
+  const handleCloseApplicantsModal = () => {
+    setSelectedProjectId(null);
+    setApplications([]);
+  };
+
+  // Helper function to get initials
+  const getInitials = (name = '') => {
+    if (!name) return 'U';
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
   };
 
   if (loading) {
@@ -518,7 +580,12 @@ const Dashboard = () => {
                     </div>
 
                     <div className="project-actions">
-                      <button className="btn-secondary small">View Applicants</button>
+                      <button 
+                        className="btn-secondary small" 
+                        onClick={() => handleViewApplicants(project.id)}
+                      >
+                        View Applicants
+                      </button>
                       <button className="btn-primary small">Manage Project</button>
                       <button 
                         className="btn-secondary small" 
@@ -535,6 +602,167 @@ const Dashboard = () => {
           )}
         </div>
       </div>
+
+      {/* Applicants Modal */}
+      {selectedProjectId && (
+        <div className="applicants-modal-overlay" onClick={handleCloseApplicantsModal}>
+          <div className="applicants-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="applicants-modal-header">
+              <h2>Applications</h2>
+              <button className="close-button" onClick={handleCloseApplicantsModal}>×</button>
+            </div>
+
+            <div className="applicants-modal-content">
+              {loadingApplications ? (
+                <div className="loading-state">Loading applications...</div>
+              ) : applications.length === 0 ? (
+                <div className="empty-state">
+                  <p>No applications yet for this project.</p>
+                </div>
+              ) : (
+                <div className="applications-list">
+                  {applications.map((application) => {
+                    const applicant = application.applicant || {};
+                    const applicantName = applicant?.full_name || applicant?.email?.split('@')[0] || 'Unknown Applicant';
+                    const applicantInitials = applicant?.profile_image || getInitials(applicantName);
+                    const skills = applicant?.skills ? applicant.skills.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+                    return (
+                      <div key={application.id} className="application-card">
+                        <div className="application-header">
+                          <div className="applicant-avatar">
+                            {applicantInitials}
+                          </div>
+                          <div className="applicant-info">
+                            <h3 className="applicant-name">{applicantName}</h3>
+                            <div className="applicant-meta">
+                              {applicant?.major && <span>{applicant.major}</span>}
+                              {applicant?.academic_year && (
+                                <>
+                                  <span className="dot">•</span>
+                                  <span>{applicant.academic_year}</span>
+                                </>
+                              )}
+                              {applicant?.location && (
+                                <>
+                                  <span className="dot">•</span>
+                                  <span>{applicant.location}</span>
+                                </>
+                              )}
+                            </div>
+                            {applicant?.rating && applicant.rating > 0 && (
+                              <div className="applicant-rating">
+                                ⭐ {applicant.rating.toFixed(1)} ({applicant.review_count || 0} reviews)
+                              </div>
+                            )}
+                          </div>
+                          <div className="application-status">
+                            <span className={`status-badge ${application.status || 'pending'}`}>
+                              {(application.status || 'pending').charAt(0).toUpperCase() + (application.status || 'pending').slice(1)}
+                            </span>
+                          </div>
+                        </div>
+
+                        {applicant?.bio && (
+                          <div className="applicant-bio">
+                            <p>{applicant.bio}</p>
+                          </div>
+                        )}
+
+                        {skills.length > 0 && (
+                          <div className="applicant-skills">
+                            <span className="skills-label">Skills:</span>
+                            <div className="skills-tags">
+                              {skills.map((skill, idx) => (
+                                <span key={idx} className="skill-tag">{skill}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="application-details">
+                          <h4>Application Details</h4>
+                          
+                          {application.cover_letter || application.message ? (
+                            <div className="detail-section">
+                              <strong>Cover Letter:</strong>
+                              <p>{application.cover_letter || application.message}</p>
+                            </div>
+                          ) : null}
+
+                          {application.relevant_experience && (
+                            <div className="detail-section">
+                              <strong>Relevant Experience:</strong>
+                              <p>{application.relevant_experience}</p>
+                            </div>
+                          )}
+
+                          {application.why_interested && (
+                            <div className="detail-section">
+                              <strong>Why Interested:</strong>
+                              <p>{application.why_interested}</p>
+                            </div>
+                          )}
+
+                          {application.availability && (
+                            <div className="detail-section">
+                              <strong>Availability:</strong>
+                              <p>{application.availability}</p>
+                            </div>
+                          )}
+
+                          {application.resume_link && (
+                            <div className="detail-section">
+                              <strong>Resume:</strong>
+                              <a href={application.resume_link} target="_blank" rel="noopener noreferrer" className="link">
+                                View Resume
+                              </a>
+                            </div>
+                          )}
+
+                          {application.portfolio_link && (
+                            <div className="detail-section">
+                              <strong>Portfolio:</strong>
+                              <a href={application.portfolio_link} target="_blank" rel="noopener noreferrer" className="link">
+                                View Portfolio
+                              </a>
+                            </div>
+                          )}
+
+                          <div className="detail-section">
+                            <strong>Applied:</strong>
+                            <p>{formatDate(application.created_at)}</p>
+                          </div>
+                        </div>
+
+                        <div className="application-actions">
+                          {applicant?.id ? (
+                            <Link 
+                              to={`/profile/${applicant.id}`} 
+                              className="btn-primary small"
+                              onClick={handleCloseApplicantsModal}
+                            >
+                              View Full Profile
+                            </Link>
+                          ) : null}
+                          {applicant?.email && (
+                            <a 
+                              href={`mailto:${applicant.email}`} 
+                              className="btn-secondary small"
+                            >
+                              Contact
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };
