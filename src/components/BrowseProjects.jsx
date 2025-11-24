@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
+import ApplyForm from './ApplyForm';
 import './BrowseProjects.css';
 
 const BrowseProjects = () => {
@@ -14,6 +15,8 @@ const BrowseProjects = () => {
   });
 
   const [activeFilters, setActiveFilters] = useState([]);
+  const [showApplyForm, setShowApplyForm] = useState(false);
+  const [selectedProject, setSelectedProject] = useState(null);
 
   // Fetch projects from Supabase
   useEffect(() => {
@@ -426,7 +429,15 @@ const BrowseProjects = () => {
                   <div className="project-footer">
                     <span className="posted-date">{project.postedDate}</span>
                     <div className="project-actions">
-                      <button className="btn-apply">Apply Now</button>
+                      <button 
+                        className="btn-apply"
+                        onClick={() => {
+                          setSelectedProject({ id: project.id, title: project.title });
+                          setShowApplyForm(true);
+                        }}
+                      >
+                        Apply Now
+                      </button>
                       <button 
                         className="btn-save" 
                         onClick={() => handleSaveProject(project.id)}
@@ -479,6 +490,18 @@ const BrowseProjects = () => {
           </div>
         </div>
       </div>
+      
+      {showApplyForm && selectedProject && (
+        <ApplyForm
+          isOpen={showApplyForm}
+          onClose={() => {
+            setShowApplyForm(false);
+            setSelectedProject(null);
+          }}
+          projectId={selectedProject.id}
+          projectTitle={selectedProject.title}
+        />
+      )}
     </div>
   );
 };
