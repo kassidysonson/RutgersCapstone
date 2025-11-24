@@ -88,7 +88,7 @@ function App() {
     <div className="App">
       <Header />
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/home" element={<Home />} />
         <Route path="/dashboard/:id" element={<Dashboard />} />
         <Route path="/post-project" element={<PostProject />} />

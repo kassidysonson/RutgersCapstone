@@ -72,11 +72,12 @@ const Header = () => {
     navigate("/#how-it-works");
   };
 
-  // Hide header on login/signup/landing
+  // Hide header on login/signup/landing and root (landing page)
   if (
     location.pathname === "/login" ||
     location.pathname === "/signup" ||
-    location.pathname === "/landing"
+    location.pathname === "/landing" ||
+    location.pathname === "/"
   ) {
     return null;
   }
