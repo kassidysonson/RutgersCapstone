@@ -294,9 +294,7 @@ const BrowseProjects = () => {
 
   return (
     <div className="browse-projects-page">
-      <div className="browse-projects-header">
-        <h1 className="page-title">Browse Projects</h1>
-      </div>
+      
 
       <div className="browse-projects-content">
         <div className="filters-sidebar">
