@@ -23,31 +23,37 @@ const EditProfile = ({ isOpen, onClose, userId }) => {
       if (!userId || !isOpen) return;
 
       try {
+        // First get email from auth
+        const { data: sessionData } = await supabase.auth.getSession();
+        const userEmail = sessionData?.session?.user?.email || '';
+
+        // Try to fetch from users table
         const { data, error } = await supabase
           .from('users')
           .select('*')
           .eq('id', userId)
-          .single();
+          .maybeSingle();
 
-        if (error) throw error;
-
-        if (data) {
-          setFormData({
-            full_name: data.full_name || '',
-            email: data.email || '',
-            university: data.university || '',
-            bio: data.bio || '',
-            major: data.major || '',
-            academic_year: data.academic_year || '',
-            location: data.location || '',
-            skills: data.skills || '',
-            availability: data.availability || '',
-            profile_image: data.profile_image || ''
-          });
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error fetching profile:', error);
         }
+
+        // Set form data with existing values or defaults
+        setFormData({
+          full_name: data?.full_name || '',
+          email: data?.email || userEmail,
+          university: data?.university || '',
+          bio: data?.bio || '',
+          major: data?.major || '',
+          academic_year: data?.academic_year || '',
+          location: data?.location || '',
+          skills: data?.skills || '',
+          availability: data?.availability || '',
+          profile_image: data?.profile_image || ''
+        });
       } catch (error) {
-        console.error('Error fetching profile:', error);
-        // If user doesn't exist in users table, get email from auth
+        console.error('Error in fetchProfile:', error);
+        // Get email from auth as fallback
         const { data: sessionData } = await supabase.auth.getSession();
         if (sessionData?.session?.user) {
           setFormData(prev => ({
@@ -80,47 +86,125 @@ const EditProfile = ({ isOpen, onClose, userId }) => {
     setLoading(true);
 
     try {
-      // Calculate experience level based on projects_completed if not set
-      const { data: currentUser } = await supabase
-        .from('users')
-        .select('projects_completed')
-        .eq('id', userId)
-        .single();
+      // Get email from auth if not in formData
+      let userEmail = formData.email;
+      if (!userEmail) {
+        const { data: sessionData } = await supabase.auth.getSession();
+        userEmail = sessionData?.session?.user?.email || '';
+      }
 
-      const projectsCompleted = currentUser?.projects_completed || 0;
-      let experienceLevel = formData.experience_level;
+      // Check if user exists in users table
+      const { data: existingUser, error: checkError } = await supabase
+        .from('users')
+        .select('id, projects_completed, experience_level')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (checkError && checkError.code !== 'PGRST116') {
+        throw checkError;
+      }
+
+      const projectsCompleted = existingUser?.projects_completed || 0;
+      let experienceLevel = existingUser?.experience_level;
       if (!experienceLevel) {
         if (projectsCompleted >= 10) experienceLevel = 'Advanced';
         else if (projectsCompleted >= 5) experienceLevel = 'Intermediate';
         else experienceLevel = 'Beginner';
       }
 
-      // Update user profile
-      const { error } = await supabase
-        .from('users')
-        .update({
-          full_name: formData.full_name,
-          university: formData.university,
-          bio: formData.bio,
-          major: formData.major,
-          academic_year: formData.academic_year,
-          location: formData.location,
-          skills: formData.skills,
-          availability: formData.availability,
-          profile_image: formData.profile_image,
-          experience_level: experienceLevel
-        })
-        .eq('id', userId);
+      // Get full existing user data to preserve fields we're not updating
+      let existingFullUser = null;
+      if (existingUser) {
+        const { data: fullUserData } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', userId)
+          .single();
+        existingFullUser = fullUserData;
+      }
 
-      if (error) throw error;
+      // Prepare user data - only include fields we want to update
+      // Don't include password or other sensitive fields
+      // Convert empty strings to null to avoid issues
+      const updateData = {
+        full_name: formData.full_name?.trim() || null,
+        university: formData.university?.trim() || null,
+        bio: formData.bio?.trim() || null,
+        major: formData.major?.trim() || null,
+        academic_year: formData.academic_year?.trim() || null,
+        location: formData.location?.trim() || null,
+        skills: formData.skills?.trim() || null,
+        availability: formData.availability?.trim() || null,
+        profile_image: formData.profile_image?.trim() || null,
+        experience_level: experienceLevel
+      };
 
-      alert('Profile updated successfully!');
+      // Debug: log what we're trying to save
+      console.log('Saving profile data:', updateData);
+      console.log('Form data:', formData);
+
+      let result;
+
+      if (existingUser) {
+        // User exists - update
+        const { data, error: updateError } = await supabase
+          .from('users')
+          .update(updateData)
+          .eq('id', userId)
+          .select();
+
+        if (updateError) {
+          console.error('Update error:', updateError);
+          console.error('Update data:', updateData);
+          console.error('User ID:', userId);
+          throw updateError;
+        }
+        console.log('Update successful, returned data:', data);
+        result = data;
+      } else {
+        // User doesn't exist - insert
+        if (!userEmail) {
+          throw new Error('Email is required to create user profile');
+        }
+
+        const insertData = {
+          id: userId,
+          email: userEmail,
+          ...updateData,
+          // Set defaults for new users
+          projects_completed: 0,
+          rating: 0,
+          review_count: 0
+        };
+
+        const { data, error: insertError } = await supabase
+          .from('users')
+          .insert(insertData)
+          .select();
+
+        if (insertError) {
+          console.error('Insert error:', insertError);
+          console.error('Insert data:', insertData);
+          console.error('User ID:', userId);
+          throw insertError;
+        }
+        console.log('Insert successful, returned data:', data);
+        result = data;
+      }
+
+      if (!result || result.length === 0) {
+        throw new Error('Failed to save profile - no data returned');
+      }
+
+      console.log('Profile saved successfully:', result);
+
+      alert('Profile saved successfully!');
       onClose();
       // Reload the page to reflect changes
       window.location.reload();
     } catch (error) {
-      console.error('Error updating profile:', error);
-      alert('Error updating profile: ' + error.message);
+      console.error('Error saving profile:', error);
+      alert('Error saving profile: ' + (error.message || 'Please try again.'));
     } finally {
       setLoading(false);
     }
