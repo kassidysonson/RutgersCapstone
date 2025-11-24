@@ -44,9 +44,7 @@ const HowItWorksPage = () => {
             >
               Your browser does not support the video tag.
             </video>
-            <p className="video-note">
-              📹 Place your tutorial video file named <strong>tutorial-video.mp4</strong> in the <strong>public</strong> folder
-            </p>
+            
           </div>
         </div>
 
@@ -87,7 +85,6 @@ const HowItWorksPage = () => {
             </div>
           </div>
         </div>
-
       </div>
     </div>
   );
