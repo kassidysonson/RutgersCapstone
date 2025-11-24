@@ -2,12 +2,14 @@ import React, { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import "./Header.css";
 import { supabase } from "../supabaseClient";
+import EditProfile from "./EditProfile";
 
 const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [displayName, setDisplayName] = useState("");
   const [userId, setUserId] = useState(null);
+  const [showEditProfile, setShowEditProfile] = useState(false);
 
   // 🔹 Logout handler
   const handleLogout = async () => {
@@ -145,9 +147,13 @@ const Header = () => {
         <div className="header-actions">
           {displayName ? (
             <>
-              <Link to={userId ? `/dashboard/${userId}` : "/dashboard"} className="btn-login" style={{ textDecoration: "none" }}>
+              <button 
+                className="btn-login" 
+                onClick={() => setShowEditProfile(true)}
+                style={{ textDecoration: "none", cursor: "pointer" }}
+              >
                 {displayName}
-              </Link>
+              </button>
               <button className="btn-signup" onClick={handleLogout}>
                 Log Out
               </button>
@@ -164,6 +170,13 @@ const Header = () => {
           )}
         </div>
       </div>
+      {userId && (
+        <EditProfile 
+          isOpen={showEditProfile} 
+          onClose={() => setShowEditProfile(false)} 
+          userId={userId}
+        />
+      )}
     </header>
   );
 };

@@ -29,8 +29,10 @@ const PostProject = () => {
     major: '',
     availability: '',
     isUrgent: false,
-    category: ''
+    category: '',
+    location: 'Remote'
   });
+  const [loading, setLoading] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -42,28 +44,58 @@ const PostProject = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const s = window.supabaseSession;
-    if (!s?.user?.id) { console.warn('Not signed in'); return; }
-
-    // Map to DB schema
-    const row = {
-      owner_id: s.user.id,
-      title: formData.title,
-      description: formData.description,
-      expectations: formData.skills,
-      location: formData.location || 'Remote',
-      compensation: formData.budget,
-    };
-
-    const { error } = await supabase.from('projects').insert(row);
-    if (error) { 
-      console.error('Insert project error:', error); 
-      alert('Error posting project: ' + error.message);
-      return; 
+    
+    if (!userId) {
+      alert('Please log in to post a project');
+      navigate('/login');
+      return;
     }
-    alert('Project posted successfully!');
-    if (userId) {
-      navigate(`/dashboard/${userId}`);
+
+    setLoading(true);
+    
+    try {
+      // Map form data to database columns
+      const projectData = {
+        owner_id: userId,
+        title: formData.title,
+        description: formData.description,
+        company: formData.company,
+        budget: formData.budget,
+        duration: formData.duration,
+        experience_level: formData.experienceLevel,
+        skills: formData.skills,
+        academic_year: formData.academicYear === 'Any year' ? null : formData.academicYear,
+        major: formData.major || null,
+        availability: formData.availability || null,
+        is_urgent: formData.isUrgent,
+        category: formData.category || null,
+        location: formData.location || 'Remote',
+        compensation: formData.budget, // Keep for backward compatibility
+        expectations: formData.skills // Keep for backward compatibility
+      };
+
+      const { error } = await supabase
+        .from('projects')
+        .insert(projectData);
+
+      if (error) {
+        console.error('Error posting project:', error);
+        alert('Error posting project: ' + error.message);
+        setLoading(false);
+        return;
+      }
+
+      alert('Project posted successfully!');
+      // Navigate back to dashboard
+      if (userId) {
+        navigate(`/dashboard/${userId}`);
+      } else {
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      console.error('Error posting project:', error);
+      alert('Error posting project: ' + error.message);
+      setLoading(false);
     }
   };
 
@@ -170,13 +202,33 @@ const PostProject = () => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Category</label>
-                <input
-                  type="text"
+                <label className="form-label">
+                  Category <span className="required">*</span>
+                </label>
+                <select
                   name="category"
                   value={formData.category}
                   onChange={handleInputChange}
-                  placeholder="e.g., Web Development, Design"
+                  className="form-select"
+                  required
+                >
+                  <option value="">Select a category</option>
+                  <option value="Web Development">Web Development</option>
+                  <option value="Mobile Development">Mobile Development</option>
+                  <option value="Design">Design</option>
+                  <option value="Data Science">Data Science</option>
+                  <option value="Marketing">Marketing</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Location</label>
+                <input
+                  type="text"
+                  name="location"
+                  value={formData.location}
+                  onChange={handleInputChange}
+                  placeholder="e.g., Remote, New York, NY"
                   className="form-input"
                 />
               </div>
@@ -281,7 +333,9 @@ const PostProject = () => {
 
             <div className="form-actions">
               <Link to={userId ? `/dashboard/${userId}` : "/dashboard"} className="btn-cancel">Cancel</Link>
-              <button type="submit" className="btn-post">Post Project</button>
+              <button type="submit" className="btn-post" disabled={loading}>
+                {loading ? 'Posting...' : 'Post Project'}
+              </button>
             </div>
           </form>
         </div>

@@ -19,10 +19,10 @@ const BrowseProjects = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        // Fetch projects
+        // Fetch projects with all new columns
         const { data: projectsData, error: projectsError } = await supabase
           .from('projects')
-          .select('id, title, description, expectations, location, compensation, created_at, owner_id')
+          .select('id, title, description, expectations, location, compensation, created_at, owner_id, company, budget, duration, experience_level, skills, category, is_urgent')
           .order('created_at', { ascending: false });
 
         if (projectsError) throw projectsError;
@@ -60,10 +60,12 @@ const BrowseProjects = () => {
 
         // Transform data to match the display format
         const formattedProjects = (projectsData || []).map(project => {
-          // Parse skills from expectations (comma-separated string)
-          const skills = project.expectations
-            ? project.expectations.split(',').map(s => s.trim()).filter(Boolean)
-            : [];
+          // Parse skills from skills column (comma-separated string), fallback to expectations
+          const skills = project.skills
+            ? project.skills.split(',').map(s => s.trim()).filter(Boolean)
+            : (project.expectations
+                ? project.expectations.split(',').map(s => s.trim()).filter(Boolean)
+                : []);
 
           // Format date as "Posted X days ago"
           const formatPostedDate = (dateString) => {
@@ -82,9 +84,9 @@ const BrowseProjects = () => {
             return `Posted ${Math.floor(diffDays / 30)} months ago`;
           };
 
-          // Get company/owner name
+          // Get company/owner name - prefer company field, fallback to owner name
           const owner = ownersData[project.owner_id];
-          const company = owner?.full_name || owner?.email?.split('@')[0] || 'Unknown';
+          const company = project.company || owner?.full_name || owner?.email?.split('@')[0] || 'Unknown';
 
           return {
             id: project.id,
@@ -92,12 +94,13 @@ const BrowseProjects = () => {
             company: company,
             description: project.description,
             skills: skills,
-            duration: 'Flexible', // Not in schema, using placeholder
+            duration: project.duration || 'Flexible',
             postedDate: formatPostedDate(project.created_at),
             applicants: applicationCounts[project.id] || 0,
             location: project.location || 'Remote',
-            category: 'General', // Not in schema, using placeholder
+            category: project.category || 'General',
             owner_id: project.owner_id,
+            is_urgent: project.is_urgent || false,
           };
         });
 

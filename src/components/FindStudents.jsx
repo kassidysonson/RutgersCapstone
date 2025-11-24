@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { supabase } from '../supabaseClient';
 import './FindStudents.css';
 
 const FindStudents = () => {
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     experienceLevel: [],
     academicYear: [],
@@ -11,85 +14,62 @@ const FindStudents = () => {
     availability: []
   });
 
-  const [activeFilters, setActiveFilters] = useState(['React']);
+  const [activeFilters, setActiveFilters] = useState([]);
 
-  const students = [
-    {
-      id: 1,
-      name: "Sarah Chen",
-      major: "Computer Science",
-      year: "Junior",
-      location: "Stanford, CA",
-      rating: 4.9,
-      reviewCount: 12,
-      description: "Full-stack developer with experience in modern web technologies. Passionate about creating user-friendly applications and solving complex problems.",
-      skills: ["React", "Python", "UI/UX Design", "Machine Learning"],
-      availability: "20 hrs/week",
-      projectsCompleted: 8,
-      profileImage: "SC"
-    },
-    
-    {
-      id: 2,
-      name: "Marcus Johnson",
-      major: "Business Administration",
-      year: "Senior",
-      location: "Boston, MA",
-      rating: 4.8,
-      reviewCount: 15,
-      description: "Marketing specialist with a focus on digital strategies and brand development. Experienced in content creation and social media management.",
-      skills: ["Marketing", "Content Writing", "Social Media", "Analytics"],
-      availability: "15 hrs/week",
-      projectsCompleted: 12,
-      
-      profileImage: "MJ"
-    },
-    {
-      id: 3,
-      name: "Emma Rodriguez",
-      major: "Graphic Design",
-      year: "Sophomore",
-      location: "Austin, TX",
-      rating: 4.7,
-      reviewCount: 8,
-      description: "Creative designer focused on brand identity and user experience. Looking to gain experience in startup environments.",
-      skills: ["Figma", "Adobe Creative Suite", "Branding", "Web Design"],
-      availability: "25 hrs/week",
-      projectsCompleted: 5,
-     
-      profileImage: "ER"
-    },
-    {
-      id: 4,
-      name: "David Kim",
-      major: "Data Science",
-      year: "Graduate",
-      location: "Seattle, WA",
-      rating: 5.0,
-      reviewCount: 20,
-      description: "Data scientist with expertise in predictive modeling and analytics. Published research in ML conferences.",
-      skills: ["Python", "R", "Machine Learning", "Data Visualization"],
-      availability: "30 hrs/week",
-      projectsCompleted: 15,
-      
-      profileImage: "DK"
-    },
-    {
-      id: 5,
-      name: "Galathara Kahanda",
-      major: "Computer Science",
-      year: "Graduate",
-      location: "Newark, NJ",
-      rating: 5.0,
-      reviewCount: 3,
-      description: " My research lies at the intersection of AI, ML, and cybersecurity, with the overarching goal of developing intelligent, adaptive, and robust systems that can operate securely in adversarial environments.",
-      skills: ["React", "Python", "UI/UX Design", "Machine Learning"],
-      availability: "20 hrs/week",
-      projectsCompleted: 3,
-      
-      profileImage: "GK"
-    }
-  ];
+  // Fetch students from database
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        const { data: studentsData, error } = await supabase
+          .from('users')
+          .select('id, full_name, email, major, academic_year, location, rating, review_count, bio, skills, availability, projects_completed, profile_image, experience_level, university')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        // Transform database data to match component format
+        const formattedStudents = (studentsData || []).map(student => {
+          // Parse skills from comma-separated string
+          const skillsArray = student.skills
+            ? student.skills.split(',').map(s => s.trim()).filter(Boolean)
+            : [];
+
+          // Calculate experience level if not set
+          const experienceLevel = student.experience_level || 
+            (student.projects_completed >= 10 ? 'Advanced' :
+             student.projects_completed >= 5 ? 'Intermediate' : 'Beginner');
+
+          return {
+            id: student.id,
+            name: student.full_name || student.email?.split('@')[0] || 'Unknown',
+            major: student.major || 'Not specified',
+            year: student.academic_year || 'Not specified',
+            location: student.location || 'Not specified',
+            rating: student.rating || 0,
+            reviewCount: student.review_count || 0,
+            description: student.bio || 'No description available',
+            skills: skillsArray,
+            availability: student.availability || 'Not specified',
+            projectsCompleted: student.projects_completed || 0,
+            profileImage: student.profile_image || (student.full_name ? student.full_name.substring(0, 2).toUpperCase() : 'U'),
+            experienceLevel: experienceLevel,
+            university: student.university || 'Not specified'
+          };
+        });
+
+        setStudents(formattedStudents);
+      } catch (error) {
+        console.error('Error fetching students:', error);
+        setStudents([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStudents();
+  }, []);
+
+  const majors = ["Computer Science", "Business", "Design", "Engineering", "Marketing", "Data Science"];
 
   const majors = ["Computer Science", "Business", "Design", "Engineering", "Marketing", "Data Science"];
   const skills = ["React", "Python", "JavaScript", "UI/UX Design", "Node.js", "Figma", "Machine Learning"];
@@ -137,7 +117,7 @@ const FindStudents = () => {
     return students.filter(student => {
       // Check experience level
       if (filters.experienceLevel.length > 0) {
-        const studentExperience = getStudentExperienceLevel(student);
+        const studentExperience = student.experienceLevel || getStudentExperienceLevel(student);
         if (!filters.experienceLevel.includes(studentExperience)) {
           return false;
         }
@@ -185,10 +165,17 @@ const FindStudents = () => {
 
   // Helper function to determine availability status
   const getStudentAvailability = (student) => {
-    const hours = parseInt(student.availability);
-    if (hours >= 25) return "Available now";
-    if (hours >= 15) return "Within 1 week";
-    if (hours >= 10) return "Within 1 month";
+    if (!student.availability || student.availability === 'Not specified') {
+      return "Flexible";
+    }
+    // Try to parse hours from availability string (e.g., "20 hrs/week")
+    const hoursMatch = student.availability.match(/(\d+)/);
+    if (hoursMatch) {
+      const hours = parseInt(hoursMatch[1]);
+      if (hours >= 25) return "Available now";
+      if (hours >= 15) return "Within 1 week";
+      if (hours >= 10) return "Within 1 month";
+    }
     return "Flexible";
   };
 
@@ -319,7 +306,13 @@ const FindStudents = () => {
 
           {/* Right Content - Student Profiles */}
           <div className="students-grid">
-            {getFilteredStudents().length > 0 ? (
+            {loading ? (
+              <div className="no-results">
+                <div className="no-results-content">
+                  <p>Loading students...</p>
+                </div>
+              </div>
+            ) : getFilteredStudents().length > 0 ? (
               getFilteredStudents().map(student => (
               <div key={student.id} className="student-card">
                 <div className="student-header">
