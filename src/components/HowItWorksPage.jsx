@@ -26,21 +26,17 @@ const HowItWorksPage = () => {
         </div>
 
         {/* Tutorial Video Section */}
-        <div className="tutorial-video-section">
-  
-          <div className="video-wrapper">
-            <video
-              ref={videoRef}
-              className="tutorial-video"
-              src="/tutorial-video.mp4"
-              controls
-              playsInline
-              preload="metadata"
-            >
-              Your browser does not support the video tag.
-            </video>
-            
-          </div>
+        <div className="video-wrapper">
+          <video
+            ref={videoRef}
+            className="tutorial-video"
+            src="/tutorial-video.mp4"
+            controls
+            playsInline
+            preload="metadata"
+          >
+            Your browser does not support the video tag.
+          </video>
         </div>
 
         {/* Steps Section */}
