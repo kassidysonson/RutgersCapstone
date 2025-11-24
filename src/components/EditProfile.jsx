@@ -2,6 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import './EditProfile.css';
 
+// List of universities - Add more universities here
+const UNIVERSITIES = [
+  'Rutgers University',
+  'Princeton University',
+  'Stevens Institute of Technology',
+  'New Jersey Institute of Technology (NJIT)',
+  'Seton Hall University',
+  'Montclair State University',
+  'Rowan University',
+  'The College of New Jersey (TCNJ)',
+  'Rider University',
+  'Fairleigh Dickinson University',
+  'Drew University',
+  'Stockton University',
+  'Kean University',
+  'William Paterson University',
+  'Ramapo College',
+  'Other'
+];
+
 const EditProfile = ({ isOpen, onClose, userId }) => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -163,14 +183,19 @@ const EditProfile = ({ isOpen, onClose, userId }) => {
 
           <div className="form-group">
             <label className="form-label">University</label>
-            <input
-              type="text"
+            <select
               name="university"
               value={formData.university}
               onChange={handleInputChange}
-              className="form-input"
-              placeholder="Enter your university"
-            />
+              className="form-select"
+            >
+              <option value="">Select university</option>
+              {UNIVERSITIES.map((university) => (
+                <option key={university} value={university}>
+                  {university}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="form-group">
