@@ -8,6 +8,7 @@ const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [displayName, setDisplayName] = useState("");
+  const [firstName, setFirstName] = useState("");
   const [userId, setUserId] = useState(null);
   const [showEditProfile, setShowEditProfile] = useState(false);
 
@@ -27,6 +28,7 @@ const Header = () => {
 
       if (!session?.user) {
         setDisplayName("");
+        setFirstName("");
         setUserId(null);
         return;
       }
@@ -43,9 +45,13 @@ const Header = () => {
 
       if (!error && profile?.full_name) {
         setDisplayName(profile.full_name);
+        // Extract first name
+        const first = profile.full_name.split(' ')[0];
+        setFirstName(first);
       } else {
         // Fallback: show email if no full_name found
         setDisplayName(userEmail);
+        setFirstName(userEmail);
       }
       setUserId(userId);
     };
@@ -148,11 +154,28 @@ const Header = () => {
           {displayName ? (
             <>
               <button 
-                className="btn-login" 
                 onClick={() => setShowEditProfile(true)}
-                style={{ textDecoration: "none", cursor: "pointer" }}
+                className="header-profile-link"
+                style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
               >
-                {displayName}
+                <div className="header-profile">
+                  <div className="header-profile-icon">
+                    <svg 
+                      width="24" 
+                      height="24" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2"
+                    >
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                  </div>
+                  <span className="header-profile-name">
+                    {firstName ? `Hi, ${firstName}` : displayName}
+                  </span>
+                </div>
               </button>
               <button className="btn-signup" onClick={handleLogout}>
                 Log Out

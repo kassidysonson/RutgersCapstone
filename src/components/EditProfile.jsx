@@ -98,26 +98,35 @@ const EditProfile = ({ isOpen, onClose, userId }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!userId) {
-      alert('User not authenticated');
-      return;
-    }
-
     setLoading(true);
 
     try {
-      // Get email from auth if not in formData
-      let userEmail = formData.email;
-      if (!userEmail) {
-        const { data: sessionData } = await supabase.auth.getSession();
-        userEmail = sessionData?.session?.user?.email || '';
+      // Get current session to ensure we have the authenticated user
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !sessionData?.session?.user) {
+        alert('Please log in to save your profile');
+        setLoading(false);
+        return;
+      }
+
+      const authUserId = sessionData.session.user.id;
+      const userEmail = sessionData.session.user.email || formData.email || '';
+
+      // Use the authenticated user's ID, not the prop (for security)
+      const currentUserId = authUserId || userId;
+      
+      if (!currentUserId) {
+        alert('User not authenticated');
+        setLoading(false);
+        return;
       }
 
       // Check if user exists in users table
       const { data: existingUser, error: checkError } = await supabase
         .from('users')
         .select('id, projects_completed, experience_level')
-        .eq('id', userId)
+        .eq('id', currentUserId)
         .maybeSingle();
 
       if (checkError && checkError.code !== 'PGRST116') {
@@ -138,7 +147,7 @@ const EditProfile = ({ isOpen, onClose, userId }) => {
         const { data: fullUserData } = await supabase
           .from('users')
           .select('*')
-          .eq('id', userId)
+          .eq('id', currentUserId)
           .single();
         existingFullUser = fullUserData;
       }
@@ -170,13 +179,14 @@ const EditProfile = ({ isOpen, onClose, userId }) => {
         const { data, error: updateError } = await supabase
           .from('users')
           .update(updateData)
-          .eq('id', userId)
+          .eq('id', currentUserId)
           .select();
 
         if (updateError) {
           console.error('Update error:', updateError);
           console.error('Update data:', updateData);
-          console.error('User ID:', userId);
+          console.error('User ID:', currentUserId);
+          console.error('Auth UID:', authUserId);
           throw updateError;
         }
         console.log('Update successful, returned data:', data);
@@ -188,7 +198,7 @@ const EditProfile = ({ isOpen, onClose, userId }) => {
         }
 
         const insertData = {
-          id: userId,
+          id: currentUserId, // Must match auth.uid() for RLS policy
           email: userEmail,
           ...updateData,
           // Set defaults for new users
@@ -205,7 +215,8 @@ const EditProfile = ({ isOpen, onClose, userId }) => {
         if (insertError) {
           console.error('Insert error:', insertError);
           console.error('Insert data:', insertData);
-          console.error('User ID:', userId);
+          console.error('User ID:', currentUserId);
+          console.error('Auth UID:', authUserId);
           throw insertError;
         }
         console.log('Insert successful, returned data:', data);
