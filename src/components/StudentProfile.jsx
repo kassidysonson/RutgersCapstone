@@ -69,8 +69,12 @@ const StudentProfile = () => {
           ? userData.skills.split(',').map(s => s.trim()).filter(Boolean)
           : [];
 
-        // Get profile image or generate initials
-        const profileImage = userData.profile_image || getInitials(userData.full_name || email);
+        // Get profile image URL or generate initials
+        const profileImageUrl = userData.profile_image && 
+          (userData.profile_image.startsWith('http://') || userData.profile_image.startsWith('https://'))
+          ? userData.profile_image 
+          : null;
+        const profileImageInitials = profileImageUrl ? null : getInitials(userData.full_name || email);
 
         // Map experience_level to experience string
         const experienceMap = {
@@ -93,7 +97,8 @@ const StudentProfile = () => {
           skills: skills,
           availability: userData.availability || 'Not specified',
           projectsCompleted: userData.projects_completed || 0,
-          profileImage: profileImage,
+          profileImageUrl: profileImageUrl,
+          profileImageInitials: profileImageInitials,
           email: email || 'No email available',
           // Fields not in database - set to null/empty
           phone: null,
@@ -188,7 +193,27 @@ const StudentProfile = () => {
         <div className="profile-card">
           <div className="profile-header-section">
             <div className="profile-avatar-large">
-              {student.profileImage}
+              {student.profileImageUrl ? (
+                <img 
+                  src={student.profileImageUrl} 
+                  alt={student.name}
+                  className="profile-avatar-img"
+                  onError={(e) => {
+                    // Fallback to initials if image fails to load
+                    e.target.style.display = 'none';
+                    const initialsSpan = e.target.parentElement.querySelector('.profile-avatar-initials');
+                    if (initialsSpan) {
+                      initialsSpan.style.display = 'flex';
+                    }
+                  }}
+                />
+              ) : null}
+              <span 
+                className="profile-avatar-initials"
+                style={{ display: student.profileImageUrl ? 'none' : 'flex' }}
+              >
+                {student.profileImageInitials}
+              </span>
             </div>
             <div className="profile-info">
               <h1 className="profile-name">{student.name}</h1>

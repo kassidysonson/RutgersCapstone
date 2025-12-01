@@ -51,7 +51,14 @@ const FindStudents = () => {
             skills: skillsArray,
             availability: student.availability || 'Not specified',
             projectsCompleted: student.projects_completed || 0,
-            profileImage: student.profile_image || (student.full_name ? student.full_name.substring(0, 2).toUpperCase() : 'U'),
+            profileImageUrl: student.profile_image && 
+              (student.profile_image.startsWith('http://') || student.profile_image.startsWith('https://'))
+              ? student.profile_image 
+              : null,
+            profileImageInitials: student.profile_image && 
+              (student.profile_image.startsWith('http://') || student.profile_image.startsWith('https://'))
+              ? null
+              : (student.full_name ? student.full_name.substring(0, 2).toUpperCase() : 'U'),
             experienceLevel: experienceLevel,
             university: student.university || 'Not specified'
           };
@@ -315,7 +322,26 @@ const FindStudents = () => {
               <div key={student.id} className="student-card">
                 <div className="student-header">
                   <div className="student-avatar">
-                    {student.profileImage}
+                    {student.profileImageUrl ? (
+                      <img 
+                        src={student.profileImageUrl} 
+                        alt={student.name}
+                        className="student-avatar-img"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          const initialsSpan = e.target.parentElement.querySelector('.student-avatar-initials');
+                          if (initialsSpan) {
+                            initialsSpan.style.display = 'flex';
+                          }
+                        }}
+                      />
+                    ) : null}
+                    <span 
+                      className="student-avatar-initials"
+                      style={{ display: student.profileImageUrl ? 'none' : 'flex' }}
+                    >
+                      {student.profileImageInitials}
+                    </span>
                   </div>
                   <div className="student-info">
                     <h4 className="student-name">{student.name}</h4>

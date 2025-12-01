@@ -624,14 +624,37 @@ const Dashboard = () => {
                   {applications.map((application) => {
                     const applicant = application.applicant || {};
                     const applicantName = applicant?.full_name || applicant?.email?.split('@')[0] || 'Unknown Applicant';
-                    const applicantInitials = applicant?.profile_image || getInitials(applicantName);
+                    const applicantImageUrl = applicant?.profile_image && 
+                      (applicant.profile_image.startsWith('http://') || applicant.profile_image.startsWith('https://'))
+                      ? applicant.profile_image 
+                      : null;
+                    const applicantInitials = applicantImageUrl ? null : getInitials(applicantName);
                     const skills = applicant?.skills ? applicant.skills.split(',').map(s => s.trim()).filter(Boolean) : [];
 
                     return (
                       <div key={application.id} className="application-card">
                         <div className="application-header">
                           <div className="applicant-avatar">
-                            {applicantInitials}
+                            {applicantImageUrl ? (
+                              <img 
+                                src={applicantImageUrl} 
+                                alt={applicantName}
+                                className="applicant-avatar-img"
+                                onError={(e) => {
+                                  e.target.style.display = 'none';
+                                  const initialsSpan = e.target.parentElement.querySelector('.applicant-avatar-initials');
+                                  if (initialsSpan) {
+                                    initialsSpan.style.display = 'flex';
+                                  }
+                                }}
+                              />
+                            ) : null}
+                            <span 
+                              className="applicant-avatar-initials"
+                              style={{ display: applicantImageUrl ? 'none' : 'flex' }}
+                            >
+                              {applicantInitials}
+                            </span>
                           </div>
                           <div className="applicant-info">
                             <h3 className="applicant-name">{applicantName}</h3>
