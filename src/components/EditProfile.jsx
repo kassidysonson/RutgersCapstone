@@ -24,6 +24,9 @@ const UNIVERSITIES = [
 
 const EditProfile = ({ isOpen, onClose, userId }) => {
   const [loading, setLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
@@ -59,6 +62,7 @@ const EditProfile = ({ isOpen, onClose, userId }) => {
         }
 
         // Set form data with existing values or defaults
+        const profileImage = data?.profile_image || '';
         setFormData({
           full_name: data?.full_name || '',
           email: data?.email || userEmail,
@@ -69,8 +73,14 @@ const EditProfile = ({ isOpen, onClose, userId }) => {
           location: data?.location || '',
           skills: data?.skills || '',
           availability: data?.availability || '',
-          profile_image: data?.profile_image || ''
+          profile_image: profileImage
         });
+        // Set preview if profile_image is a URL
+        if (profileImage && (profileImage.startsWith('http://') || profileImage.startsWith('https://'))) {
+          setImagePreview(profileImage);
+        } else {
+          setImagePreview(null);
+        }
       } catch (error) {
         console.error('Error in fetchProfile:', error);
         // Get email from auth as fallback
@@ -92,6 +102,114 @@ const EditProfile = ({ isOpen, onClose, userId }) => {
     setFormData(prev => ({
       ...prev,
       [name]: value
+    }));
+  };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 10MB - reasonable for profile images)
+    if (file.size > 10 * 1024 * 1024) {
+      alert('Image size must be less than 10MB. Please compress your image or choose a smaller file.');
+      return;
+    }
+
+    setSelectedFile(file);
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleUploadImage = async () => {
+    if (!selectedFile || !userId) return;
+
+    setUploadingImage(true);
+    try {
+      // Generate unique filename
+      const fileExt = selectedFile.name.split('.').pop();
+      const fileName = `${userId}-${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      // Upload to Supabase Storage (bucket is public)
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('profile-images')
+        .upload(filePath, selectedFile, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (uploadError) {
+        // Handle specific error cases
+        if (uploadError.message?.includes('already exists')) {
+          // If file exists, try with a new timestamp
+          const newFileName = `${userId}-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+          const retryUpload = await supabase.storage
+            .from('profile-images')
+            .upload(newFileName, selectedFile, {
+              cacheControl: '3600',
+              upsert: false
+            });
+          
+          if (retryUpload.error) throw retryUpload.error;
+          
+          // Get public URL for retried upload
+          const { data: urlData } = supabase.storage
+            .from('profile-images')
+            .getPublicUrl(newFileName);
+          
+          if (urlData?.publicUrl) {
+            setFormData(prev => ({
+              ...prev,
+              profile_image: urlData.publicUrl
+            }));
+            alert('Image uploaded successfully!');
+            return;
+          }
+        }
+        throw uploadError;
+      }
+
+      // Get public URL (bucket is public, so this should work)
+      const uploadedPath = uploadData?.path || filePath;
+      const { data: urlData } = supabase.storage
+        .from('profile-images')
+        .getPublicUrl(uploadedPath);
+
+      if (urlData?.publicUrl) {
+        setFormData(prev => ({
+          ...prev,
+          profile_image: urlData.publicUrl
+        }));
+        alert('Image uploaded successfully!');
+      } else {
+        throw new Error('Failed to get public URL');
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Error uploading image: ' + (error.message || 'Please try again.'));
+    } finally {
+      setUploadingImage(false);
+      setSelectedFile(null);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setSelectedFile(null);
+    setImagePreview(null);
+    setFormData(prev => ({
+      ...prev,
+      profile_image: ''
     }));
   };
 
@@ -373,15 +491,64 @@ const EditProfile = ({ isOpen, onClose, userId }) => {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Profile Image (Initials or URL)</label>
-            <input
-              type="text"
-              name="profile_image"
-              value={formData.profile_image}
-              onChange={handleInputChange}
-              className="form-input"
-              placeholder="e.g., JD or https://..."
-            />
+            <label className="form-label">Profile Image</label>
+            
+            {/* Image Preview */}
+            {imagePreview && (
+              <div className="image-preview-container">
+                <img 
+                  src={imagePreview} 
+                  alt="Profile preview" 
+                  className="image-preview"
+                />
+                {selectedFile && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className="btn-remove-image"
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* File Input */}
+            <div className="file-upload-container">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="file-input"
+                id="profile-image-upload"
+              />
+              <label htmlFor="profile-image-upload" className="file-input-label">
+                {selectedFile ? selectedFile.name : 'Choose Image'}
+              </label>
+              {selectedFile && (
+                <button
+                  type="button"
+                  onClick={handleUploadImage}
+                  disabled={uploadingImage}
+                  className="btn-upload-image"
+                >
+                  {uploadingImage ? 'Uploading...' : 'Upload Image'}
+                </button>
+              )}
+            </div>
+
+            {/* Or use URL option */}
+            <div className="image-url-option">
+              <span className="url-divider">OR</span>
+              <input
+                type="text"
+                name="profile_image"
+                value={formData.profile_image}
+                onChange={handleInputChange}
+                className="form-input"
+                placeholder="Enter image URL"
+              />
+            </div>
           </div>
 
           <div className="form-actions">
