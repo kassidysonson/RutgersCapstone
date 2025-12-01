@@ -10,6 +10,8 @@ const Header = () => {
   const [displayName, setDisplayName] = useState("");
   const [firstName, setFirstName] = useState("");
   const [userId, setUserId] = useState(null);
+  const [profileImageUrl, setProfileImageUrl] = useState(null);
+  const [profileInitials, setProfileInitials] = useState(null);
   const [showEditProfile, setShowEditProfile] = useState(false);
 
   // 🔹 Logout handler
@@ -30,18 +32,30 @@ const Header = () => {
         setDisplayName("");
         setFirstName("");
         setUserId(null);
+        setProfileImageUrl(null);
+        setProfileInitials(null);
         return;
       }
 
       const userId = session.user.id;
       const userEmail = session.user.email;
 
-      // Try to get full_name from your users table
+      // Try to get full_name and profile_image from your users table
       const { data: profile, error } = await supabase
         .from("users")
-        .select("full_name")
+        .select("full_name, profile_image")
         .eq("id", userId)
         .maybeSingle();
+
+      // Helper function to get initials
+      const getInitials = (name = '') => {
+        if (!name) return 'U';
+        const parts = name.trim().split(' ');
+        if (parts.length >= 2) {
+          return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        }
+        return name.substring(0, 2).toUpperCase();
+      };
 
       if (!error && profile?.full_name) {
         setDisplayName(profile.full_name);
@@ -53,6 +67,15 @@ const Header = () => {
         setDisplayName(userEmail);
         setFirstName(userEmail);
       }
+
+      // Set profile image
+      const imageUrl = profile?.profile_image && 
+        (profile.profile_image.startsWith('http://') || profile.profile_image.startsWith('https://'))
+        ? profile.profile_image 
+        : null;
+      setProfileImageUrl(imageUrl);
+      setProfileInitials(imageUrl ? null : getInitials(profile?.full_name || userEmail));
+
       setUserId(userId);
     };
 
@@ -159,17 +182,26 @@ const Header = () => {
               >
                 <div className="header-profile">
                   <div className="header-profile-icon">
-                    <svg 
-                      width="24" 
-                      height="24" 
-                      viewBox="0 0 24 24" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      strokeWidth="2"
+                    {profileImageUrl ? (
+                      <img 
+                        src={profileImageUrl} 
+                        alt={displayName}
+                        className="header-profile-img"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          const initialsSpan = e.target.parentElement.querySelector('.header-profile-initials');
+                          if (initialsSpan) {
+                            initialsSpan.style.display = 'flex';
+                          }
+                        }}
+                      />
+                    ) : null}
+                    <span 
+                      className="header-profile-initials"
+                      style={{ display: profileImageUrl ? 'none' : 'flex' }}
                     >
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                      <circle cx="12" cy="7" r="4" />
-                    </svg>
+                      {profileInitials || 'U'}
+                    </span>
                   </div>
                   <span className="header-profile-name">
                     {firstName ? `Hi, ${firstName}` : displayName}

@@ -132,7 +132,7 @@ const Dashboard = () => {
 
         const profilePromise = supabase
           .from('users')
-          .select('id, full_name, avatar_url')
+          .select('id, full_name, profile_image')
           .eq('id', currentUser.id)
           .maybeSingle();
 
@@ -246,12 +246,20 @@ const Dashboard = () => {
     return 'Student';
   }, [profile, sessionUser]);
 
+  const profileImageUrl = useMemo(() => {
+    if (profile?.profile_image && 
+        (profile.profile_image.startsWith('http://') || profile.profile_image.startsWith('https://'))) {
+      return profile.profile_image;
+    }
+    return null;
+  }, [profile]);
+
   const initials = useMemo(() => {
-    if (profile?.avatar_url) {
-      return null;
+    if (profileImageUrl) {
+    return null;
     }
     return buildInitials(displayName);
-  }, [profile, displayName]);
+  }, [profileImageUrl, displayName]);
 
   const stats = useMemo(() => {
     return {
@@ -376,14 +384,14 @@ const Dashboard = () => {
       <div className="dashboard-container">
         <div className="dashboard-header">
           <div className="user-chip">
-            {initials ? (
-              <div className="avatar">{initials}</div>
+            {profileImageUrl ? (
+              <img src={profileImageUrl} alt={displayName} className="avatar avatar-img" />
             ) : (
-              profile?.avatar_url && <img src={profile.avatar_url} alt={displayName} className="avatar" />
+              initials && <div className="avatar">{initials}</div>
             )}
             <div className="user-meta">
               <h2 className="dashboard-title">Welcome back, {displayName}</h2>
-              <p className="dashboard-subtitle">Here’s a quick look at your activity</p>
+              <p className="dashboard-subtitle">Here's a quick look at your activity</p>
             </div>
           </div>
           <a href="/post-project" className="btn-post-new">
@@ -436,24 +444,24 @@ const Dashboard = () => {
                   const project = entry.project;
                   return (
                     <div key={entry.id} className="project-card">
-                      <div className="project-top">
-                        <div className="project-main">
+              <div className="project-top">
+                <div className="project-main">
                           <h3 className="project-title">{project?.title || 'Untitled Project'}</h3>
-                          <div className="project-sub">
+                  <div className="project-sub">
                             <span className="company">{project?.location || 'Remote'}</span>
-                            <span className="dot">•</span>
+                    <span className="dot">•</span>
                             <span className="applied">{formatDate(entry.updated_at)}</span>
-                          </div>
-                        </div>
+                  </div>
+                </div>
                         <div className={`status-badge ${entry.status === 'Completed' ? 'completed' : 'inprogress'}`}>
                           {entry.status}
-                        </div>
-                      </div>
+                </div>
+              </div>
 
-                      <div className="project-meta">
-                        <div className="meta-group skills">
-                          <span className="meta-label">Skills Required</span>
-                          <div className="skill-tags">
+              <div className="project-meta">
+                <div className="meta-group skills">
+                  <span className="meta-label">Skills Required</span>
+                  <div className="skill-tags">
                             {splitSkills(project?.expectations).length > 0 ? (
                               splitSkills(project?.expectations).map((skill) => (
                                 <span key={skill} className="skill-tag">
@@ -463,21 +471,21 @@ const Dashboard = () => {
                             ) : (
                               <span className="no-students">No skills listed</span>
                             )}
-                          </div>
-                        </div>
-                      </div>
+                  </div>
+                </div>
+              </div>
 
-                      <div className="progress-row">
-                        <div className="progress-bar">
+              <div className="progress-row">
+                <div className="progress-bar">
                           <div className="progress-fill" style={{ width: `${entry.progress}%` }} />
-                        </div>
+                </div>
                         <div className="progress-value">{entry.progress}%</div>
-                      </div>
+              </div>
 
-                      <div className="project-actions">
-                        <button className="btn-secondary small">View Details</button>
-                        <button className="btn-primary small">Update Progress</button>
-                      </div>
+              <div className="project-actions">
+                <button className="btn-secondary small">View Details</button>
+                <button className="btn-primary small">Update Progress</button>
+              </div>
                     </div>
                   );
                 })
@@ -509,14 +517,14 @@ const Dashboard = () => {
                           </div>
                         </div>
                         <div className="status-badge saved">Saved</div>
-                      </div>
+              </div>
 
                       <div className="project-description">{project?.description || 'No description provided.'}</div>
                       <div className="project-actions">
                         <button className="btn-secondary small">View Details</button>
                         <button className="btn-primary small">Apply Now</button>
                       </div>
-                    </div>
+            </div>
                   );
                 })
               )}
@@ -535,58 +543,58 @@ const Dashboard = () => {
               ) : (
                 postedProjects.map((project) => (
                   <div key={project.id} className="project-card">
-                    <div className="project-top">
-                      <div className="project-main">
+              <div className="project-top">
+                <div className="project-main">
                         <h3 className="project-title">{project.title}</h3>
-                        <div className="project-sub">
+                  <div className="project-sub">
                           <span className="posted-date">Posted {formatDate(project.created_at)}</span>
-                          <span className="dot">•</span>
+                    <span className="dot">•</span>
                           <span className="applicants">{project.location || 'Remote'}</span>
-                        </div>
-                      </div>
+                  </div>
+                </div>
                       <div className="status-badge active">
                         Active
-                      </div>
-                    </div>
+                </div>
+              </div>
 
                     <div className="project-description">{project.description || 'No description yet.'}</div>
 
-                    <div className="project-meta">
-                      <div className="meta-group">
-                        <div className="meta-item">
+              <div className="project-meta">
+                <div className="meta-group">
+                  <div className="meta-item">
                           <span className="meta-label">Location:</span>
                           <span className="meta-value">{project.location || 'Remote'}</span>
                         </div>
                         <div className="meta-item">
                           <span className="meta-label">Compensation:</span>
                           <span className="meta-value">{project.compensation || 'Not specified'}</span>
-                        </div>
-                      </div>
+                  </div>
+                </div>
 
-                      <div className="meta-group skills">
-                        <span className="meta-label">Skills Required</span>
-                        <div className="skill-tags">
+                <div className="meta-group skills">
+                  <span className="meta-label">Skills Required</span>
+                  <div className="skill-tags">
                           {splitSkills(project.expectations).length > 0 ? (
                             splitSkills(project.expectations).map((skill) => (
                               <span key={skill} className="skill-tag">
                                 {skill}
                               </span>
-                            ))
-                          ) : (
+                      ))
+                    ) : (
                             <span className="no-students">No skills listed</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
+                    )}
+                  </div>
+                </div>
+              </div>
 
-                    <div className="project-actions">
+              <div className="project-actions">
                       <button 
                         className="btn-secondary small" 
                         onClick={() => handleViewApplicants(project.id)}
                       >
                         View Applicants
                       </button>
-                      <button className="btn-primary small">Manage Project</button>
+                <button className="btn-primary small">Manage Project</button>
                       <button 
                         className="btn-secondary small" 
                         onClick={() => handleDeleteProject(project.id, project.title)}
@@ -683,8 +691,8 @@ const Dashboard = () => {
                             <span className={`status-badge ${application.status || 'pending'}`}>
                               {(application.status || 'pending').charAt(0).toUpperCase() + (application.status || 'pending').slice(1)}
                             </span>
-                          </div>
-                        </div>
+              </div>
+            </div>
 
                         {applicant?.bio && (
                           <div className="applicant-bio">
@@ -780,10 +788,10 @@ const Dashboard = () => {
                       </div>
                     );
                   })}
-                </div>
-              )}
             </div>
-          </div>
+          )}
+        </div>
+      </div>
         </div>
       )}
     </section>
