@@ -325,14 +325,25 @@ const EditProfile = ({ isOpen, onClose, userId }) => {
   };
 
   const handleAddSkill = (skill) => {
-    if (skill && !selectedSkills.includes(skill)) {
-      const newSkills = [...selectedSkills, skill];
-      setSelectedSkills(newSkills);
-      setFormData(prev => ({
-        ...prev,
-        skills: newSkills.join(',')
-      }));
+    if (!skill) return;
+    
+    // Check if skill is already selected
+    if (selectedSkills.includes(skill)) {
+      return;
     }
+    
+    // Check if limit of 8 skills is reached
+    if (selectedSkills.length >= 8) {
+      alert('You can select up to 8 skills. Remove one to add another.');
+      return;
+    }
+    
+    const newSkills = [...selectedSkills, skill];
+    setSelectedSkills(newSkills);
+    setFormData(prev => ({
+      ...prev,
+      skills: newSkills.join(',')
+    }));
   };
 
   const handleRemoveSkill = (skillToRemove) => {

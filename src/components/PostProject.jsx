@@ -3,6 +3,110 @@ import { Link, useNavigate } from 'react-router-dom';
 import './PostProject.css';
 import { supabase } from '../supabaseClient';
 
+// Skills grouped by category (from EditProfile.jsx)
+const SKILLS_BY_CATEGORY = [
+  {
+    category: 'Technology & Software',
+    skills: [
+      'JavaScript',
+      'Python',
+      'Java',
+      'C++',
+      'HTML/CSS',
+      'React',
+      'Node.js',
+      'SQL / Databases',
+      'Mobile App Development',
+      'UI/UX Design',
+      'Graphic Design (Photoshop/Illustrator)',
+      'Figma',
+      'Data Analysis',
+      'Machine Learning',
+      'Cybersecurity',
+      'Cloud Computing (AWS, Azure, GCP)'
+    ]
+  },
+  {
+    category: 'Business, Marketing & Management',
+    skills: [
+      'Project Management',
+      'Business Strategy',
+      'Entrepreneurship',
+      'Marketing',
+      'Social Media Management',
+      'Financial Analysis',
+      'Customer Service'
+    ]
+  },
+  {
+    category: 'Creative & Communication',
+    skills: [
+      'Creative Writing',
+      'Writing / Editing',
+      'Video Editing',
+      'Photography',
+      'Animation',
+      'Content Creation',
+      'Branding',
+      'Copywriting',
+      'Presentation Design'
+    ]
+  },
+  {
+    category: 'Science & Research',
+    skills: [
+      'Research Methods',
+      'Lab Skills',
+      'Statistical Analysis',
+      'Scientific Writing',
+      'Data Collection',
+      'Critical Thinking'
+    ]
+  },
+  {
+    category: 'Interpersonal Skills',
+    skills: [
+      'Collaboration',
+      'Communication',
+      'Teamwork',
+      'Problem-Solving',
+      'Adaptability',
+      'Time Management',
+      'Leadership',
+      'Empathy',
+      'Active Listening',
+      'Conflict Resolution',
+      'Creativity',
+      'Accountability',
+      'Reliability',
+      'Decision-Making',
+      'Organization'
+    ]
+  },
+  {
+    category: 'Hands-On / Practical Skills',
+    skills: [
+      'CAD / 3D Modeling',
+      'Mechanical Skills',
+      'Electrical Systems',
+      'Robotics',
+      'First Aid / CPR',
+      'Fitness Training'
+    ]
+  }
+];
+
+// Availability options (from FindStudents.jsx)
+const AVAILABILITY_OPTIONS = [
+  "Not currently available",
+  "Up to 5 hours/week",
+  "5–10 hours/week",
+  "10–15 hours/week",
+  "15–20 hours/week",
+  "20+ hours/week",
+  "Flexible"
+];
+
 const PostProject = () => {
   const navigate = useNavigate();
   const [userId, setUserId] = useState(null);
@@ -16,6 +120,20 @@ const PostProject = () => {
     };
     getUserId();
   }, []);
+
+  // Close skills dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showSkillsDropdown && !event.target.closest('.skills-dropdown-container')) {
+        setShowSkillsDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showSkillsDropdown]);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -32,6 +150,9 @@ const PostProject = () => {
     category: '',
     location: 'Remote'
   });
+  const [selectedSkills, setSelectedSkills] = useState([]);
+  const [customSkillInput, setCustomSkillInput] = useState('');
+  const [showSkillsDropdown, setShowSkillsDropdown] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleInputChange = (e) => {
@@ -42,12 +163,45 @@ const PostProject = () => {
     }));
   };
 
+  const handleAddSkill = (skill) => {
+    if (skill && !selectedSkills.includes(skill)) {
+      const newSkills = [...selectedSkills, skill];
+      setSelectedSkills(newSkills);
+      setFormData(prev => ({
+        ...prev,
+        skills: newSkills.join(',')
+      }));
+    }
+  };
+
+  const handleRemoveSkill = (skillToRemove) => {
+    const newSkills = selectedSkills.filter(skill => skill !== skillToRemove);
+    setSelectedSkills(newSkills);
+    setFormData(prev => ({
+      ...prev,
+      skills: newSkills.join(',')
+    }));
+  };
+
+  const handleCustomSkillSubmit = (e) => {
+    e.preventDefault();
+    if (customSkillInput.trim()) {
+      handleAddSkill(customSkillInput.trim());
+      setCustomSkillInput('');
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!userId) {
       alert('Please log in to post a project');
       navigate('/login');
+      return;
+    }
+
+    if (selectedSkills.length === 0) {
+      alert('Please select at least one required skill');
       return;
     }
 
@@ -63,7 +217,7 @@ const PostProject = () => {
         budget: formData.budget,
         duration: formData.duration,
         experience_level: formData.experienceLevel,
-        skills: formData.skills,
+        skills: selectedSkills.length > 0 ? selectedSkills : [],
         academic_year: formData.academicYear === 'Any year' ? null : formData.academicYear,
         major: formData.major || null,
         availability: formData.availability || null,
@@ -189,15 +343,18 @@ const PostProject = () => {
                   <label className="form-label">
                     Duration <span className="required">*</span>
                   </label>
-                  <input
-                    type="text"
+                  <select
                     name="duration"
                     value={formData.duration}
                     onChange={handleInputChange}
-                    placeholder="e.g., 4-6 weeks"
-                    className="form-input"
+                    className="form-select"
                     required
-                  />
+                  >
+                    <option value="">Select duration</option>
+                    {AVAILABILITY_OPTIONS.map(option => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -254,23 +411,73 @@ const PostProject = () => {
                 <label className="form-label">
                   Required Skills <span className="required">*</span>
                 </label>
-                <div className="skills-input-container">
+                
+                {/* Selected Skills Chips */}
+                <div className="skills-chips-container">
+                  {selectedSkills.map((skill) => (
+                    <div key={skill} className="skill-chip">
+                      <span>{skill}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveSkill(skill)}
+                        className="skill-chip-remove"
+                        aria-label={`Remove ${skill}`}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Skills Dropdown */}
+                <div className="skills-dropdown-container">
+                  <button
+                    type="button"
+                    onClick={() => setShowSkillsDropdown(!showSkillsDropdown)}
+                    className="skills-dropdown-toggle"
+                  >
+                    {showSkillsDropdown ? 'Hide Skills' : 'Add Skills'}
+                  </button>
+                  
+                  {showSkillsDropdown && (
+                    <div className="skills-dropdown">
+                      {SKILLS_BY_CATEGORY.map((categoryGroup) => (
+                        <div key={categoryGroup.category} className="skills-category">
+                          <div className="skills-category-header">{categoryGroup.category}</div>
+                          <div className="skills-options">
+                            {categoryGroup.skills.map((skill) => {
+                              const isSelected = selectedSkills.includes(skill);
+                              return (
+                                <button
+                                  key={skill}
+                                  type="button"
+                                  onClick={() => !isSelected && handleAddSkill(skill)}
+                                  className={`skill-option ${isSelected ? 'selected' : ''}`}
+                                  disabled={isSelected}
+                                >
+                                  {skill}
+                                  {isSelected && <span className="checkmark">✓</span>}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Custom Skill Input */}
+                <form onSubmit={handleCustomSkillSubmit} className="custom-skill-form">
                   <input
                     type="text"
-                    name="skills"
-                    value={formData.skills}
-                    onChange={handleInputChange}
-                    placeholder="e.g., React, Python, UI/UX"
+                    value={customSkillInput}
+                    onChange={(e) => setCustomSkillInput(e.target.value)}
                     className="form-input"
-                    required
+                    placeholder="Type a custom skill and press Enter"
+                    style={{ marginTop: '8px' }}
                   />
-                  <button type="button" className="add-skill-btn">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <line x1="12" y1="5" x2="12" y2="19"></line>
-                      <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                  </button>
-                </div>
+                </form>
               </div>
 
               <div className="form-group">
@@ -304,14 +511,17 @@ const PostProject = () => {
 
               <div className="form-group">
                 <label className="form-label">Availability Needed (Optional)</label>
-                <input
-                  type="text"
+                <select
                   name="availability"
                   value={formData.availability}
                   onChange={handleInputChange}
-                  placeholder="e.g., 15-20 hrs/week"
-                  className="form-input"
-                />
+                  className="form-select"
+                >
+                  <option value="">Select availability</option>
+                  {AVAILABILITY_OPTIONS.map(option => (
+                    <option key={option} value={option}>{option}</option>
+                  ))}
+                </select>
               </div>
 
               <div className="urgent-toggle">
