@@ -3,6 +3,173 @@ import { Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import './FindStudents.css';
 
+// Majors grouped by category (from EditProfile.jsx)
+const MAJORS_BY_CATEGORY = [
+  {
+    category: 'Arts & Humanities',
+    majors: [
+      'English',
+      'History',
+      'Philosophy',
+      'Linguistics',
+      'Communications',
+      'Visual Arts / Fine Arts'
+    ]
+  },
+  {
+    category: 'Social Sciences',
+    majors: [
+      'Psychology',
+      'Sociology',
+      'Political Science',
+      'Anthropology',
+      'Economics',
+      'Criminal Justice',
+      'Education'
+    ]
+  },
+  {
+    category: 'Business',
+    majors: [
+      'Business Administration',
+      'Finance',
+      'Accounting',
+      'Marketing',
+      'Management',
+      'Entrepreneurship'
+    ]
+  },
+  {
+    category: 'STEM',
+    majors: [
+      'Computer Science',
+      'Information Technology',
+      'Software Engineering',
+      'Data Science',
+      'Cybersecurity',
+      'Mathematics',
+      'Statistics',
+      'Biology',
+      'Chemistry',
+      'Physics',
+      'Environmental Science'
+    ]
+  },
+  {
+    category: 'Engineering',
+    majors: [
+      'Electrical Engineering',
+      'Mechanical Engineering',
+      'Civil Engineering',
+      'Biomedical Engineering',
+      'Chemical Engineering'
+    ]
+  },
+  {
+    category: 'Health & Public Service',
+    majors: [
+      'Nursing',
+      'Public Health',
+      'Social Work',
+      'Health Sciences',
+      'Pre-Medicine / Pre-Health'
+    ]
+  }
+];
+
+// Skills grouped by category (from EditProfile.jsx)
+const SKILLS_BY_CATEGORY = [
+  {
+    category: 'Technology & Software',
+    skills: [
+      'JavaScript',
+      'Python',
+      'Java',
+      'C++',
+      'HTML/CSS',
+      'React',
+      'Node.js',
+      'SQL / Databases',
+      'Mobile App Development',
+      'UI/UX Design',
+      'Graphic Design (Photoshop/Illustrator)',
+      'Figma',
+      'Data Analysis',
+      'Machine Learning',
+      'Cybersecurity',
+      'Cloud Computing (AWS, Azure, GCP)'
+    ]
+  },
+  {
+    category: 'Business, Marketing & Management',
+    skills: [
+      'Project Management',
+      'Business Strategy',
+      'Entrepreneurship',
+      'Marketing',
+      'Social Media Management',
+      'Financial Analysis',
+      'Customer Service'
+    ]
+  },
+  {
+    category: 'Creative & Communication',
+    skills: [
+      'Creative Writing',
+      'Writing / Editing',
+      'Video Editing',
+      'Photography',
+      'Animation',
+      'Content Creation',
+      'Branding',
+      'Copywriting',
+      'Presentation Design'
+    ]
+  },
+  {
+    category: 'Science & Research',
+    skills: [
+      'Research Methods',
+      'Lab Skills',
+      'Statistical Analysis',
+      'Scientific Writing',
+      'Data Collection',
+      'Critical Thinking'
+    ]
+  },
+  {
+    category: 'Interpersonal Skills',
+    skills: [
+      'Collaboration',
+      'Communication',
+      'Teamwork',
+      'Problem-Solving',
+      'Adaptability',
+      'Time Management',
+      'Leadership',
+      'Empathy',
+      'Active Listening',
+      'Conflict Resolution',
+      'Creativity',
+      'Accountability',
+      'Reliability',
+      'Decision-Making',
+      'Organization'
+    ]
+  },
+  {
+    category: 'Hands-On / Practical Skills',
+    skills: [
+      'CAD / 3D Modeling',
+      'Mechanical Skills',
+      'Electrical Systems',
+      'Robotics',
+      'First Aid / CPR',
+      'Fitness Training'
+    ]
+  }
+];
+
 const FindStudents = () => {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -29,10 +196,15 @@ const FindStudents = () => {
 
         // Transform database data to match component format
         const formattedStudents = (studentsData || []).map(student => {
-          // Parse skills from comma-separated string
-          const skillsArray = student.skills
-            ? student.skills.split(',').map(s => s.trim()).filter(Boolean)
-            : [];
+          // Parse skills from array or comma-separated string
+          let skillsArray = [];
+          if (Array.isArray(student.skills)) {
+            // Skills is already an array (from PostgreSQL ARRAY type)
+            skillsArray = student.skills.filter(s => s && s.trim());
+          } else if (typeof student.skills === 'string' && student.skills) {
+            // Fallback: if somehow stored as string, parse it
+            skillsArray = student.skills.split(',').map(s => s.trim()).filter(Boolean);
+          }
 
           // Calculate experience level if not set
           const experienceLevel = student.experience_level || 
@@ -76,9 +248,11 @@ const FindStudents = () => {
     fetchStudents();
   }, []);
 
-  const majors = ["Computer Science", "Business", "Design", "Engineering", "Marketing", "Data Science"];
-  const skills = ["React", "Python", "JavaScript", "UI/UX Design", "Node.js", "Figma", "Machine Learning"];
   const availabilityOptions = ["Available now", "Within 1 week", "Within 1 month", "Flexible"];
+  
+  // Flatten majors and skills from categories for easy access
+  const allMajors = MAJORS_BY_CATEGORY.flatMap(cat => cat.majors);
+  const allSkills = SKILLS_BY_CATEGORY.flatMap(cat => cat.skills);
 
   const handleFilterChange = (filterType, value) => {
     setFilters(prev => {
@@ -103,7 +277,26 @@ const FindStudents = () => {
   };
 
   const removeActiveFilter = (filter) => {
-    setActiveFilters(prev => prev.filter(f => f !== filter));
+    // Find which filter type this belongs to and remove it
+    setFilters(prev => {
+      const newFilters = { ...prev };
+      Object.keys(newFilters).forEach(key => {
+        if (newFilters[key].includes(filter)) {
+          newFilters[key] = newFilters[key].filter(item => item !== filter);
+        }
+      });
+      
+      // Update active filters display
+      const allActiveFilters = [];
+      Object.entries(newFilters).forEach(([key, values]) => {
+        if (values.length > 0) {
+          allActiveFilters.push(...values);
+        }
+      });
+      setActiveFilters(allActiveFilters);
+      
+      return newFilters;
+    });
   };
 
   const clearAllFilters = () => {
@@ -252,15 +445,20 @@ const FindStudents = () => {
               <div className="filter-section">
                 <h5 className="filter-label">Major</h5>
                 <div className="filter-options">
-                  {majors.map(major => (
-                    <label key={major} className="checkbox-label">
-                      <input
-                        type="checkbox"
-                        checked={filters.major.includes(major)}
-                        onChange={() => handleFilterChange('major', major)}
-                      />
-                      <span className="checkbox-text">{major}</span>
-                    </label>
+                  {MAJORS_BY_CATEGORY.map((categoryGroup) => (
+                    <div key={categoryGroup.category}>
+                      <div className="filter-category-header">{categoryGroup.category}</div>
+                      {categoryGroup.majors.map(major => (
+                        <label key={major} className="checkbox-label">
+                          <input
+                            type="checkbox"
+                            checked={filters.major.includes(major)}
+                            onChange={() => handleFilterChange('major', major)}
+                          />
+                          <span className="checkbox-text">{major}</span>
+                        </label>
+                      ))}
+                    </div>
                   ))}
                 </div>
               </div>
@@ -269,15 +467,20 @@ const FindStudents = () => {
               <div className="filter-section">
                 <h5 className="filter-label">Skills</h5>
                 <div className="filter-options">
-                  {skills.map(skill => (
-                    <label key={skill} className="checkbox-label">
-                      <input
-                        type="checkbox"
-                        checked={filters.skills.includes(skill)}
-                        onChange={() => handleFilterChange('skills', skill)}
-                      />
-                      <span className="checkbox-text">{skill}</span>
-                    </label>
+                  {SKILLS_BY_CATEGORY.map((categoryGroup) => (
+                    <div key={categoryGroup.category}>
+                      <div className="filter-category-header">{categoryGroup.category}</div>
+                      {categoryGroup.skills.map(skill => (
+                        <label key={skill} className="checkbox-label">
+                          <input
+                            type="checkbox"
+                            checked={filters.skills.includes(skill)}
+                            onChange={() => handleFilterChange('skills', skill)}
+                          />
+                          <span className="checkbox-text">{skill}</span>
+                        </label>
+                      ))}
+                    </div>
                   ))}
                 </div>
               </div>

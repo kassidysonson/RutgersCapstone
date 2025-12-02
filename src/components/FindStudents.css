@@ -115,11 +115,31 @@
 }
 
 .filter-options {
-  max-height: 150px;
+  max-height: 300px;
   overflow-y: auto;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   padding: 8px;
+}
+
+.filter-category-header {
+  font-size: 12px;
+  font-weight: 600;
+  color: #666666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 8px 4px 4px 4px;
+  margin-top: 8px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid #e5e5e5;
+  background-color: #fafafa;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.filter-category-header:first-child {
+  margin-top: 0;
 }
 
 
