@@ -96,6 +96,99 @@ const MAJORS_BY_CATEGORY = [
   }
 ];
 
+// Skills grouped by category
+const SKILLS_BY_CATEGORY = [
+  {
+    category: 'Technology & Software',
+    skills: [
+      'JavaScript',
+      'Python',
+      'Java',
+      'C++',
+      'HTML/CSS',
+      'React',
+      'Node.js',
+      'SQL / Databases',
+      'Mobile App Development',
+      'UI/UX Design',
+      'Graphic Design (Photoshop/Illustrator)',
+      'Figma',
+      'Data Analysis',
+      'Machine Learning',
+      'Cybersecurity',
+      'Cloud Computing (AWS, Azure, GCP)'
+    ]
+  },
+  {
+    category: 'Business, Marketing & Management',
+    skills: [
+      'Project Management',
+      'Business Strategy',
+      'Entrepreneurship',
+      'Marketing',
+      'Social Media Management',
+      'Financial Analysis',
+      'Customer Service'
+    ]
+  },
+  {
+    category: 'Creative & Communication',
+    skills: [
+      'Creative Writing',
+      'Writing / Editing',
+      'Video Editing',
+      'Photography',
+      'Animation',
+      'Content Creation',
+      'Branding',
+      'Copywriting',
+      'Presentation Design'
+    ]
+  },
+  {
+    category: 'Science & Research',
+    skills: [
+      'Research Methods',
+      'Lab Skills',
+      'Statistical Analysis',
+      'Scientific Writing',
+      'Data Collection',
+      'Critical Thinking'
+    ]
+  },
+  {
+    category: 'Interpersonal Skills',
+    skills: [
+      'Collaboration',
+      'Communication',
+      'Teamwork',
+      'Problem-Solving',
+      'Adaptability',
+      'Time Management',
+      'Leadership',
+      'Empathy',
+      'Active Listening',
+      'Conflict Resolution',
+      'Creativity',
+      'Accountability',
+      'Reliability',
+      'Decision-Making',
+      'Organization'
+    ]
+  },
+  {
+    category: 'Hands-On / Practical Skills',
+    skills: [
+      'CAD / 3D Modeling',
+      'Mechanical Skills',
+      'Electrical Systems',
+      'Robotics',
+      'First Aid / CPR',
+      'Fitness Training'
+    ]
+  }
+];
+
 const EditProfile = ({ isOpen, onClose, userId }) => {
   const [loading, setLoading] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -114,6 +207,9 @@ const EditProfile = ({ isOpen, onClose, userId }) => {
     availability: '',
     profile_image: ''
   });
+  const [selectedSkills, setSelectedSkills] = useState([]);
+  const [customSkillInput, setCustomSkillInput] = useState('');
+  const [showSkillsDropdown, setShowSkillsDropdown] = useState(false);
 
   // Fetch current user profile
   useEffect(() => {
@@ -144,6 +240,12 @@ const EditProfile = ({ isOpen, onClose, userId }) => {
         const allMajors = MAJORS_BY_CATEGORY.flatMap(cat => cat.majors);
         const isOtherMajor = storedMajor && !allMajors.includes(storedMajor);
         
+        // Convert skills from comma-separated string to array
+        const skillsString = data?.skills || '';
+        const skillsArray = skillsString 
+          ? skillsString.split(',').map(s => s.trim()).filter(s => s)
+          : [];
+        
         setFormData({
           full_name: data?.full_name || '',
           email: data?.email || userEmail,
@@ -153,10 +255,11 @@ const EditProfile = ({ isOpen, onClose, userId }) => {
           otherMajor: isOtherMajor ? storedMajor : '',
           academic_year: data?.academic_year || '',
           location: data?.location || '',
-          skills: data?.skills || '',
+          skills: skillsString,
           availability: data?.availability || '',
           profile_image: profileImage
         });
+        setSelectedSkills(skillsArray);
         // Set preview if profile_image is a URL
         if (profileImage && (profileImage.startsWith('http://') || profileImage.startsWith('https://'))) {
           setImagePreview(profileImage);
@@ -179,6 +282,20 @@ const EditProfile = ({ isOpen, onClose, userId }) => {
     fetchProfile();
   }, [userId, isOpen]);
 
+  // Close skills dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showSkillsDropdown && !event.target.closest('.skills-dropdown-container')) {
+        setShowSkillsDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showSkillsDropdown]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     
@@ -195,6 +312,34 @@ const EditProfile = ({ isOpen, onClose, userId }) => {
         ...prev,
         [name]: value
       }));
+    }
+  };
+
+  const handleAddSkill = (skill) => {
+    if (skill && !selectedSkills.includes(skill)) {
+      const newSkills = [...selectedSkills, skill];
+      setSelectedSkills(newSkills);
+      setFormData(prev => ({
+        ...prev,
+        skills: newSkills.join(', ')
+      }));
+    }
+  };
+
+  const handleRemoveSkill = (skillToRemove) => {
+    const newSkills = selectedSkills.filter(skill => skill !== skillToRemove);
+    setSelectedSkills(newSkills);
+    setFormData(prev => ({
+      ...prev,
+      skills: newSkills.join(', ')
+    }));
+  };
+
+  const handleCustomSkillSubmit = (e) => {
+    e.preventDefault();
+    if (customSkillInput.trim()) {
+      handleAddSkill(customSkillInput.trim());
+      setCustomSkillInput('');
     }
   };
 
@@ -371,6 +516,11 @@ const EditProfile = ({ isOpen, onClose, userId }) => {
         ? (formData.otherMajor?.trim() || null)
         : (formData.major?.trim() || null);
       
+      // Convert skills array to comma-separated string
+      const skillsValue = selectedSkills.length > 0 
+        ? selectedSkills.join(', ') 
+        : null;
+      
       const updateData = {
         full_name: formData.full_name?.trim() || null,
         university: formData.university?.trim() || null,
@@ -378,7 +528,7 @@ const EditProfile = ({ isOpen, onClose, userId }) => {
         major: majorValue,
         academic_year: formData.academic_year?.trim() || null,
         location: formData.location?.trim() || null,
-        skills: formData.skills?.trim() || null,
+        skills: skillsValue,
         availability: formData.availability?.trim() || null,
         profile_image: formData.profile_image?.trim() || null,
         experience_level: experienceLevel
@@ -586,15 +736,73 @@ const EditProfile = ({ isOpen, onClose, userId }) => {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Skills (comma-separated)</label>
-            <input
-              type="text"
-              name="skills"
-              value={formData.skills}
-              onChange={handleInputChange}
-              className="form-input"
-              placeholder="e.g., React, Python, UI/UX Design"
-            />
+            <label className="form-label">Skills</label>
+            
+            {/* Selected Skills Chips */}
+            <div className="skills-chips-container">
+              {selectedSkills.map((skill) => (
+                <div key={skill} className="skill-chip">
+                  <span>{skill}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveSkill(skill)}
+                    className="skill-chip-remove"
+                    aria-label={`Remove ${skill}`}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Skills Dropdown */}
+            <div className="skills-dropdown-container">
+              <button
+                type="button"
+                onClick={() => setShowSkillsDropdown(!showSkillsDropdown)}
+                className="skills-dropdown-toggle"
+              >
+                {showSkillsDropdown ? 'Hide Skills' : 'Add Skills'}
+              </button>
+              
+              {showSkillsDropdown && (
+                <div className="skills-dropdown">
+                  {SKILLS_BY_CATEGORY.map((categoryGroup) => (
+                    <div key={categoryGroup.category} className="skills-category">
+                      <div className="skills-category-header">{categoryGroup.category}</div>
+                      <div className="skills-options">
+                        {categoryGroup.skills.map((skill) => {
+                          const isSelected = selectedSkills.includes(skill);
+                          return (
+                            <button
+                              key={skill}
+                              type="button"
+                              onClick={() => !isSelected && handleAddSkill(skill)}
+                              className={`skill-option ${isSelected ? 'selected' : ''}`}
+                              disabled={isSelected}
+                            >
+                              {skill}
+                              {isSelected && <span className="checkmark">✓</span>}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Custom Skill Input */}
+            <form onSubmit={handleCustomSkillSubmit} className="custom-skill-form">
+              <input
+                type="text"
+                value={customSkillInput}
+                onChange={(e) => setCustomSkillInput(e.target.value)}
+                className="form-input"
+                placeholder="Type a custom skill and press Enter"
+              />
+            </form>
           </div>
 
           <div className="form-group">
