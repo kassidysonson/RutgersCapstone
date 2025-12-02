@@ -126,11 +126,6 @@ const Header = () => {
           <a href="/" className="nav-link" onClick={handleHomeClick}>
             Home
           </a>
-          {userId && (
-            <Link to={userId ? `/dashboard/${userId}` : "/dashboard"} className="nav-link">
-              Dashboard
-            </Link>
-          )}
           <Link to="/for-students" className="nav-link">
             Find Students
           </Link>
@@ -170,6 +165,13 @@ const Header = () => {
             />
           </div>
         </div>
+
+        {/* Dashboard Link */}
+        {userId && (
+          <Link to={userId ? `/dashboard/${userId}` : "/dashboard"} className="nav-link dashboard-link">
+            Dashboard
+          </Link>
+        )}
 
         {/* Actions */}
         <div className="header-actions">

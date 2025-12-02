@@ -65,6 +65,12 @@
   color: #000000;
 }
 
+.dashboard-link {
+  margin-left: 12px;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
 /* Search Bar */
 .search-container {
   flex: 1;
