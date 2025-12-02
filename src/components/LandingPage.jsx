@@ -169,6 +169,29 @@ const LandingPage = () => {
             </div>
           </div>
         </main>
+
+        {/* Scroll Down Arrow */}
+        <button 
+          className="scroll-down-arrow"
+          onClick={() => {
+            const aboutSection = document.querySelector('.about-page, .about-section, #about');
+            if (aboutSection) {
+              aboutSection.scrollIntoView({ behavior: 'smooth' });
+            }
+          }}
+          aria-label="Scroll to About section"
+        >
+          <svg 
+            width="24" 
+            height="24" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2"
+          >
+            <path d="M6 9l6 6 6-6"/>
+          </svg>
+        </button>
       </div>
 
       {/* About Section */}

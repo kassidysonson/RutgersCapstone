@@ -316,3 +316,52 @@
   }
 }
 
+/* Scroll Down Arrow */
+.scroll-down-arrow {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  z-index: 3;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.3s ease;
+  animation: float 2s ease-in-out infinite;
+}
+
+.scroll-down-arrow:hover {
+  opacity: 0.8;
+}
+
+.scroll-down-arrow svg {
+  width: 32px;
+  height: 32px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-10px);
+  }
+}
+
+@media (max-width: 768px) {
+  .scroll-down-arrow {
+    bottom: 30px;
+  }
+  
+  .scroll-down-arrow svg {
+    width: 28px;
+    height: 28px;
+  }
+}
+
