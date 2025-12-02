@@ -240,11 +240,20 @@ const EditProfile = ({ isOpen, onClose, userId }) => {
         const allMajors = MAJORS_BY_CATEGORY.flatMap(cat => cat.majors);
         const isOtherMajor = storedMajor && !allMajors.includes(storedMajor);
         
-        // Convert skills from comma-separated string to array
-        const skillsString = data?.skills || '';
-        const skillsArray = skillsString 
-          ? skillsString.split(',').map(s => s.trim()).filter(s => s)
-          : [];
+        // Convert skills from array (database column is ARRAY type) to array
+        const skillsData = data?.skills;
+        let skillsArray = [];
+        let skillsString = '';
+        
+        if (Array.isArray(skillsData)) {
+          // Skills is already an array (from PostgreSQL ARRAY type)
+          skillsArray = skillsData.filter(s => s && s.trim());
+          skillsString = skillsArray.join(',');
+        } else if (typeof skillsData === 'string' && skillsData) {
+          // Fallback: if somehow stored as string, parse it
+          skillsString = skillsData;
+          skillsArray = skillsData.split(',').map(s => s.trim()).filter(s => s);
+        }
         
         setFormData({
           full_name: data?.full_name || '',
@@ -321,7 +330,7 @@ const EditProfile = ({ isOpen, onClose, userId }) => {
       setSelectedSkills(newSkills);
       setFormData(prev => ({
         ...prev,
-        skills: newSkills.join(', ')
+        skills: newSkills.join(',')
       }));
     }
   };
@@ -331,7 +340,7 @@ const EditProfile = ({ isOpen, onClose, userId }) => {
     setSelectedSkills(newSkills);
     setFormData(prev => ({
       ...prev,
-      skills: newSkills.join(', ')
+      skills: newSkills.join(',')
     }));
   };
 
@@ -516,10 +525,11 @@ const EditProfile = ({ isOpen, onClose, userId }) => {
         ? (formData.otherMajor?.trim() || null)
         : (formData.major?.trim() || null);
       
-      // Convert skills array to comma-separated string
+      // Send skills as array (database column is ARRAY type, format: _text)
+      // PostgreSQL array format - send as JavaScript array, Supabase handles conversion
       const skillsValue = selectedSkills.length > 0 
-        ? selectedSkills.join(', ') 
-        : null;
+        ? selectedSkills 
+        : [];
       
       const updateData = {
         full_name: formData.full_name?.trim() || null,
