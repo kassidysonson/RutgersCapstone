@@ -20,6 +20,12 @@
   z-index: 0;
 }
 
+@media (max-width: 768px) {
+  .landing-video-bg {
+    object-position: center;
+  }
+}
+
 .landing-overlay {
   position: absolute;
   top: 0;
@@ -29,6 +35,12 @@
   background: linear-gradient(to right, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.3) 50%, transparent 100%);
   z-index: 1;
   pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .landing-overlay {
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.3) 100%);
+  }
 }
 
 /* Header */
@@ -200,50 +212,26 @@
 
 @media (max-width: 768px) {
   .landing-header {
-    padding: 16px 24px;
+    padding: 16px 20px;
   }
 
   .landing-header-container {
     flex-wrap: wrap;
-    gap: 16px;
+    gap: 12px;
   }
 
-  .landing-nav {
-    gap: 20px;
-    order: 3;
-    width: 100%;
-    justify-content: center;
-  }
-
-  .landing-header-actions {
-    order: 2;
-  }
-
-  .landing-main {
-    padding: 40px 24px;
-  }
-
-  .landing-headline {
-    font-size: 48px;
-  }
-
-  .landing-description {
-    font-size: 18px;
-  }
-}
-
-@media (max-width: 480px) {
   .landing-logo {
     font-size: 20px;
   }
 
-  .landing-nav-link {
-    font-size: 13px;
+  .landing-header-actions {
+    gap: 8px;
   }
 
   .landing-btn-login {
     padding: 8px 16px;
     font-size: 13px;
+    border-width: 1px;
   }
 
   .landing-btn-get-started {
@@ -251,8 +239,67 @@
     font-size: 13px;
   }
 
+  .landing-main {
+    padding: 80px 20px 40px 20px;
+  }
+
+  .landing-left {
+    max-width: 100%;
+  }
+
   .landing-headline {
-    font-size: 36px;
+    font-size: 42px;
+    letter-spacing: -1px;
+  }
+
+  .landing-description {
+    font-size: 18px;
+  }
+
+  .landing-btn-start-connecting {
+    padding: 14px 32px;
+    font-size: 15px;
+    width: 100%;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .landing-header {
+    padding: 12px 16px;
+  }
+
+  .landing-header-container {
+    gap: 10px;
+  }
+
+  .landing-logo {
+    font-size: 18px;
+  }
+
+  .landing-header-actions {
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .landing-btn-login {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .landing-btn-get-started {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .landing-main {
+    padding: 60px 16px 30px 16px;
+  }
+
+  .landing-headline {
+    font-size: 32px;
+    letter-spacing: -0.5px;
+    line-height: 1.2;
   }
 
   .landing-description {
@@ -262,6 +309,10 @@
   .landing-btn-start-connecting {
     padding: 12px 24px;
     font-size: 14px;
+  }
+
+  .landing-left {
+    gap: 16px;
   }
 }
 
