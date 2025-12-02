@@ -22,6 +22,80 @@ const UNIVERSITIES = [
   'Other'
 ];
 
+// Majors grouped by category
+const MAJORS_BY_CATEGORY = [
+  {
+    category: 'Arts & Humanities',
+    majors: [
+      'English',
+      'History',
+      'Philosophy',
+      'Linguistics',
+      'Communications',
+      'Visual Arts / Fine Arts'
+    ]
+  },
+  {
+    category: 'Social Sciences',
+    majors: [
+      'Psychology',
+      'Sociology',
+      'Political Science',
+      'Anthropology',
+      'Economics',
+      'Criminal Justice',
+      'Education'
+    ]
+  },
+  {
+    category: 'Business',
+    majors: [
+      'Business Administration',
+      'Finance',
+      'Accounting',
+      'Marketing',
+      'Management',
+      'Entrepreneurship'
+    ]
+  },
+  {
+    category: 'STEM',
+    majors: [
+      'Computer Science',
+      'Information Technology',
+      'Software Engineering',
+      'Data Science',
+      'Cybersecurity',
+      'Mathematics',
+      'Statistics',
+      'Biology',
+      'Chemistry',
+      'Physics',
+      'Environmental Science'
+    ]
+  },
+  {
+    category: 'Engineering',
+    majors: [
+      'Electrical Engineering',
+      'Mechanical Engineering',
+      'Civil Engineering',
+      'Biomedical Engineering',
+      'Chemical Engineering'
+    ]
+  },
+  {
+    category: 'Health & Public Service',
+    majors: [
+      'Nursing',
+      'Public Health',
+      'Social Work',
+      'Health Sciences',
+      'Pre-Medicine / Pre-Health'
+    ]
+  }
+];
+
 const EditProfile = ({ isOpen, onClose, userId }) => {
   const [loading, setLoading] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -33,6 +107,7 @@ const EditProfile = ({ isOpen, onClose, userId }) => {
     university: '',
     bio: '',
     major: '',
+    otherMajor: '',
     academic_year: '',
     location: '',
     skills: '',
@@ -63,12 +138,19 @@ const EditProfile = ({ isOpen, onClose, userId }) => {
 
         // Set form data with existing values or defaults
         const profileImage = data?.profile_image || '';
+        const storedMajor = data?.major || '';
+        
+        // Check if the stored major is in our predefined list
+        const allMajors = MAJORS_BY_CATEGORY.flatMap(cat => cat.majors);
+        const isOtherMajor = storedMajor && !allMajors.includes(storedMajor);
+        
         setFormData({
           full_name: data?.full_name || '',
           email: data?.email || userEmail,
           university: data?.university || '',
           bio: data?.bio || '',
-          major: data?.major || '',
+          major: isOtherMajor ? 'Other (please specify)' : storedMajor,
+          otherMajor: isOtherMajor ? storedMajor : '',
           academic_year: data?.academic_year || '',
           location: data?.location || '',
           skills: data?.skills || '',
@@ -99,10 +181,21 @@ const EditProfile = ({ isOpen, onClose, userId }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    
+    // Handle major dropdown change
+    if (name === 'major') {
+      setFormData(prev => ({
+        ...prev,
+        major: value,
+        // Clear otherMajor if switching to a regular major
+        otherMajor: value === 'Other (please specify)' ? prev.otherMajor : ''
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   const handleFileSelect = (e) => {
@@ -273,11 +366,16 @@ const EditProfile = ({ isOpen, onClose, userId }) => {
       // Prepare user data - only include fields we want to update
       // Don't include password or other sensitive fields
       // Convert empty strings to null to avoid issues
+      // Use otherMajor if "Other (please specify)" is selected
+      const majorValue = formData.major === 'Other (please specify)' 
+        ? (formData.otherMajor?.trim() || null)
+        : (formData.major?.trim() || null);
+      
       const updateData = {
         full_name: formData.full_name?.trim() || null,
         university: formData.university?.trim() || null,
         bio: formData.bio?.trim() || null,
-        major: formData.major?.trim() || null,
+        major: majorValue,
         academic_year: formData.academic_year?.trim() || null,
         location: formData.location?.trim() || null,
         skills: formData.skills?.trim() || null,
@@ -426,14 +524,35 @@ const EditProfile = ({ isOpen, onClose, userId }) => {
           <div className="form-row">
             <div className="form-group half">
               <label className="form-label">Major</label>
-              <input
-                type="text"
+              <select
                 name="major"
                 value={formData.major}
                 onChange={handleInputChange}
-                className="form-input"
-                placeholder="e.g., Computer Science"
-              />
+                className="form-select"
+              >
+                <option value="">Select major</option>
+                {MAJORS_BY_CATEGORY.map((categoryGroup) => (
+                  <optgroup key={categoryGroup.category} label={categoryGroup.category}>
+                    {categoryGroup.majors.map((major) => (
+                      <option key={major} value={major}>
+                        {major}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+                <option value="Other (please specify)">Other (please specify)</option>
+              </select>
+              {formData.major === 'Other (please specify)' && (
+                <input
+                  type="text"
+                  name="otherMajor"
+                  value={formData.otherMajor}
+                  onChange={handleInputChange}
+                  className="form-input"
+                  placeholder="Please specify your major"
+                  style={{ marginTop: '8px' }}
+                />
+              )}
             </div>
 
             <div className="form-group half">
