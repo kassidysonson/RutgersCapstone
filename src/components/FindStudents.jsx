@@ -248,7 +248,15 @@ const FindStudents = () => {
     fetchStudents();
   }, []);
 
-  const availabilityOptions = ["Available now", "Within 1 week", "Within 1 month", "Flexible"];
+  const availabilityOptions = [
+    "Not currently available",
+    "Up to 5 hours/week",
+    "5–10 hours/week",
+    "10–15 hours/week",
+    "15–20 hours/week",
+    "20+ hours/week",
+    "Flexible"
+  ];
   
   // Flatten majors and skills from categories for easy access
   const allMajors = MAJORS_BY_CATEGORY.flatMap(cat => cat.majors);
@@ -362,17 +370,24 @@ const FindStudents = () => {
   };
 
   // Helper function to determine availability status
+  // Now availability is stored directly as one of the dropdown options
   const getStudentAvailability = (student) => {
     if (!student.availability || student.availability === 'Not specified') {
       return "Flexible";
     }
-    // Try to parse hours from availability string (e.g., "20 hrs/week")
+    // If the availability matches one of our options, return it directly
+    if (availabilityOptions.includes(student.availability)) {
+      return student.availability;
+    }
+    // Fallback for old data format - try to map to new options
     const hoursMatch = student.availability.match(/(\d+)/);
     if (hoursMatch) {
       const hours = parseInt(hoursMatch[1]);
-      if (hours >= 25) return "Available now";
-      if (hours >= 15) return "Within 1 week";
-      if (hours >= 10) return "Within 1 month";
+      if (hours >= 20) return "20+ hours/week";
+      if (hours >= 15) return "15–20 hours/week";
+      if (hours >= 10) return "10–15 hours/week";
+      if (hours >= 5) return "5–10 hours/week";
+      if (hours > 0) return "Up to 5 hours/week";
     }
     return "Flexible";
   };

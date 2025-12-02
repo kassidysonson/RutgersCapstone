@@ -66,7 +66,11 @@ const StudentProfile = () => {
 
         // Parse skills from comma-separated string
         const skills = userData.skills
-          ? userData.skills.split(',').map(s => s.trim()).filter(Boolean)
+          ? (Array.isArray(userData.skills) 
+              ? userData.skills.filter(s => s && s.trim())
+              : (typeof userData.skills === 'string' && userData.skills
+                  ? userData.skills.split(',').map(s => s.trim()).filter(Boolean)
+                  : []))
           : [];
 
         // Get profile image URL or generate initials

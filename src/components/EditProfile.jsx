@@ -817,14 +817,21 @@ const EditProfile = ({ isOpen, onClose, userId }) => {
 
           <div className="form-group">
             <label className="form-label">Availability</label>
-            <input
-              type="text"
+            <select
               name="availability"
               value={formData.availability}
               onChange={handleInputChange}
-              className="form-input"
-              placeholder="e.g., 20 hrs/week"
-            />
+              className="form-select"
+            >
+              <option value="">Select availability</option>
+              <option value="Not currently available">Not currently available</option>
+              <option value="Up to 5 hours/week">Up to 5 hours/week</option>
+              <option value="5–10 hours/week">5–10 hours/week</option>
+              <option value="10–15 hours/week">10–15 hours/week</option>
+              <option value="15–20 hours/week">15–20 hours/week</option>
+              <option value="20+ hours/week">20+ hours/week</option>
+              <option value="Flexible">Flexible</option>
+            </select>
           </div>
 
           <div className="form-group">

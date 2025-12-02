@@ -637,7 +637,13 @@ const Dashboard = () => {
                       ? applicant.profile_image 
                       : null;
                     const applicantInitials = applicantImageUrl ? null : getInitials(applicantName);
-                    const skills = applicant?.skills ? applicant.skills.split(',').map(s => s.trim()).filter(Boolean) : [];
+                    const skills = applicant?.skills 
+                      ? (Array.isArray(applicant.skills)
+                          ? applicant.skills.filter(s => s && s.trim())
+                          : (typeof applicant.skills === 'string'
+                              ? applicant.skills.split(',').map(s => s.trim()).filter(Boolean)
+                              : []))
+                      : [];
 
                     return (
                       <div key={application.id} className="application-card">

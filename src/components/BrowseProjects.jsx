@@ -65,7 +65,11 @@ const BrowseProjects = () => {
         const formattedProjects = (projectsData || []).map(project => {
           // Parse skills from skills column (comma-separated string), fallback to expectations
           const skills = project.skills
-            ? project.skills.split(',').map(s => s.trim()).filter(Boolean)
+            ? (Array.isArray(project.skills)
+                ? project.skills.filter(s => s && s.trim())
+                : (typeof project.skills === 'string' && project.skills
+                    ? project.skills.split(',').map(s => s.trim()).filter(Boolean)
+                    : []))
             : (project.expectations
                 ? project.expectations.split(',').map(s => s.trim()).filter(Boolean)
                 : []);
