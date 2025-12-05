@@ -394,9 +394,9 @@ const Dashboard = () => {
               <p className="dashboard-subtitle">Here's a quick look at your activity</p>
             </div>
           </div>
-          <a href="/post-project" className="btn-post-new">
+          <Link to="/post-project" className="btn-post-new">
             Post New Project
-          </a>
+          </Link>
         </div>
 
         <div className="stat-cards">
@@ -536,9 +536,9 @@ const Dashboard = () => {
               {postedProjects.length === 0 ? (
                 <div className="empty-state">
                   <p>You haven’t posted any projects yet.</p>
-                  <a className="btn-primary" href="/post-project">
+                  <Link to="/post-project" className="btn-primary">
                     Post your first project
-                  </a>
+                  </Link>
                 </div>
               ) : (
                 postedProjects.map((project) => (
