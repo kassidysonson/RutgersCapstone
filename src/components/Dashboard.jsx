@@ -394,9 +394,9 @@ const Dashboard = () => {
               <p className="dashboard-subtitle">Here's a quick look at your activity</p>
             </div>
           </div>
-          <a href="/post-project" className="btn-post-new">
+          <Link to="/post-project" className="btn-post-new">
             Post New Project
-          </a>
+          </Link>
         </div>
 
         <div className="stat-cards">
