@@ -110,6 +110,25 @@ const AVAILABILITY_OPTIONS = [
 const PostProject = () => {
   const navigate = useNavigate();
   const [userId, setUserId] = useState(null);
+  const [formData, setFormData] = useState({
+    title: '',
+    company: '',
+    description: '',
+    budget: '',
+    duration: '',
+    experienceLevel: 'Beginner',
+    skills: '',
+    academicYear: 'Any year',
+    major: '',
+    availability: '',
+    isUrgent: false,
+    category: '',
+    location: 'Remote'
+  });
+  const [selectedSkills, setSelectedSkills] = useState([]);
+  const [customSkillInput, setCustomSkillInput] = useState('');
+  const [showSkillsDropdown, setShowSkillsDropdown] = useState(false);
+  const [loading, setLoading] = useState(false);
   
   useEffect(() => {
     const getUserId = async () => {
@@ -134,26 +153,6 @@ const PostProject = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showSkillsDropdown]);
-
-  const [formData, setFormData] = useState({
-    title: '',
-    company: '',
-    description: '',
-    budget: '',
-    duration: '',
-    experienceLevel: 'Beginner',
-    skills: '',
-    academicYear: 'Any year',
-    major: '',
-    availability: '',
-    isUrgent: false,
-    category: '',
-    location: 'Remote'
-  });
-  const [selectedSkills, setSelectedSkills] = useState([]);
-  const [customSkillInput, setCustomSkillInput] = useState('');
-  const [showSkillsDropdown, setShowSkillsDropdown] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
