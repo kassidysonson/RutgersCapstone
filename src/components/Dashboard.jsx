@@ -594,7 +594,12 @@ const Dashboard = () => {
                       >
                         View Applicants
                       </button>
-                <button className="btn-primary small">Manage Project</button>
+                <button 
+                  className="btn-primary small"
+                  onClick={() => navigate(`/post-project?projectId=${project.id}`)}
+                >
+                  Manage Project
+                </button>
                       <button 
                         className="btn-secondary small" 
                         onClick={() => handleDeleteProject(project.id, project.title)}
