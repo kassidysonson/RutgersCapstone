@@ -26,7 +26,7 @@ const BrowseProjects = () => {
         // Fetch projects with all new columns
         const { data: projectsData, error: projectsError } = await supabase
           .from('projects')
-          .select('id, title, description, expectations, location, compensation, created_at, owner_id, company, budget, duration, experience_level, skills, category, is_urgent')
+          .select('id, title, description, expectations, location, compensation, created_at, owner_id, company, budget, duration, experience_level, skills, category, is_urgent, availability')
           .order('created_at', { ascending: false });
 
         if (projectsError) throw projectsError;
