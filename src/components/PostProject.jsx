@@ -3,6 +3,80 @@ import { Link, useNavigate } from 'react-router-dom';
 import './PostProject.css';
 import { supabase } from '../supabaseClient';
 
+// Majors grouped by category (from EditProfile.jsx)
+const MAJORS_BY_CATEGORY = [
+  {
+    category: 'Arts & Humanities',
+    majors: [
+      'English',
+      'History',
+      'Philosophy',
+      'Linguistics',
+      'Communications',
+      'Visual Arts / Fine Arts'
+    ]
+  },
+  {
+    category: 'Social Sciences',
+    majors: [
+      'Psychology',
+      'Sociology',
+      'Political Science',
+      'Anthropology',
+      'Economics',
+      'Criminal Justice',
+      'Education'
+    ]
+  },
+  {
+    category: 'Business',
+    majors: [
+      'Business Administration',
+      'Finance',
+      'Accounting',
+      'Marketing',
+      'Management',
+      'Entrepreneurship'
+    ]
+  },
+  {
+    category: 'STEM',
+    majors: [
+      'Computer Science',
+      'Information Technology',
+      'Software Engineering',
+      'Data Science',
+      'Cybersecurity',
+      'Mathematics',
+      'Statistics',
+      'Biology',
+      'Chemistry',
+      'Physics',
+      'Environmental Science'
+    ]
+  },
+  {
+    category: 'Engineering',
+    majors: [
+      'Electrical Engineering',
+      'Mechanical Engineering',
+      'Civil Engineering',
+      'Biomedical Engineering',
+      'Chemical Engineering'
+    ]
+  },
+  {
+    category: 'Health & Public Service',
+    majors: [
+      'Nursing',
+      'Public Health',
+      'Social Work',
+      'Health Sciences',
+      'Pre-Medicine / Pre-Health'
+    ]
+  }
+];
+
 // Skills grouped by category (from EditProfile.jsx)
 const SKILLS_BY_CATEGORY = [
   {
@@ -96,6 +170,14 @@ const SKILLS_BY_CATEGORY = [
   }
 ];
 
+// Duration options (monthly)
+const DURATION_OPTIONS = [
+  "1-2 months",
+  "2-3 months",
+  "3-6 months",
+  "6+ months"
+];
+
 // Availability options (from FindStudents.jsx)
 const AVAILABILITY_OPTIONS = [
   "Not currently available",
@@ -128,6 +210,9 @@ const PostProject = () => {
   const [selectedSkills, setSelectedSkills] = useState([]);
   const [customSkillInput, setCustomSkillInput] = useState('');
   const [showSkillsDropdown, setShowSkillsDropdown] = useState(false);
+  const [selectedMajors, setSelectedMajors] = useState([]);
+  const [customMajorInput, setCustomMajorInput] = useState('');
+  const [showMajorsDropdown, setShowMajorsDropdown] = useState(false);
   const [loading, setLoading] = useState(false);
   
   useEffect(() => {
@@ -153,6 +238,20 @@ const PostProject = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showSkillsDropdown]);
+
+  // Close majors dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showMajorsDropdown && !event.target.closest('.majors-dropdown-container')) {
+        setShowMajorsDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showMajorsDropdown]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -190,6 +289,34 @@ const PostProject = () => {
     }
   };
 
+  const handleAddMajor = (major) => {
+    if (major && !selectedMajors.includes(major)) {
+      const newMajors = [...selectedMajors, major];
+      setSelectedMajors(newMajors);
+      setFormData(prev => ({
+        ...prev,
+        major: newMajors.join(',')
+      }));
+    }
+  };
+
+  const handleRemoveMajor = (majorToRemove) => {
+    const newMajors = selectedMajors.filter(major => major !== majorToRemove);
+    setSelectedMajors(newMajors);
+    setFormData(prev => ({
+      ...prev,
+      major: newMajors.join(',')
+    }));
+  };
+
+  const handleCustomMajorSubmit = (e) => {
+    e.preventDefault();
+    if (customMajorInput.trim()) {
+      handleAddMajor(customMajorInput.trim());
+      setCustomMajorInput('');
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -218,7 +345,7 @@ const PostProject = () => {
         experience_level: formData.experienceLevel,
         skills: selectedSkills.length > 0 ? selectedSkills : [],
         academic_year: formData.academicYear === 'Any year' ? null : formData.academicYear,
-        major: formData.major || null,
+        major: selectedMajors.length > 0 ? selectedMajors : null,
         availability: formData.availability || null,
         is_urgent: formData.isUrgent,
         category: formData.category || null,
@@ -350,7 +477,7 @@ const PostProject = () => {
                     required
                   >
                     <option value="">Select duration</option>
-                    {AVAILABILITY_OPTIONS.map(option => (
+                    {DURATION_OPTIONS.map(option => (
                       <option key={option} value={option}>{option}</option>
                     ))}
                   </select>
@@ -369,11 +496,16 @@ const PostProject = () => {
                   required
                 >
                   <option value="">Select a category</option>
-                  <option value="Web Development">Web Development</option>
-                  <option value="Mobile Development">Mobile Development</option>
-                  <option value="Design">Design</option>
-                  <option value="Data Science">Data Science</option>
-                  <option value="Marketing">Marketing</option>
+                  <option value="Research & Academic Projects">Research & Academic Projects</option>
+                  <option value="Creative Media & Content Creation">Creative Media & Content Creation</option>
+                  <option value="Business & Entrepreneurship">Business & Entrepreneurship</option>
+                  <option value="Education & Tutoring">Education & Tutoring</option>
+                  <option value="Engineering & Robotics">Engineering & Robotics</option>
+                  <option value="Natural Sciences & Lab Work">Natural Sciences & Lab Work</option>
+                  <option value="Health & Public Service">Health & Public Service</option>
+                  <option value="UX/UI & Product Design">UX/UI & Product Design</option>
+                  <option value="Cybersecurity">Cybersecurity</option>
+                  <option value="Communications & Media Production">Communications & Media Production</option>
                 </select>
               </div>
 
@@ -498,14 +630,73 @@ const PostProject = () => {
 
               <div className="form-group">
                 <label className="form-label">Preferred Major (Optional)</label>
-                <input
-                  type="text"
-                  name="major"
-                  value={formData.major}
-                  onChange={handleInputChange}
-                  placeholder="e.g., Computer Science, Business, Design"
-                  className="form-input"
-                />
+                
+                {/* Selected Majors Chips */}
+                <div className="skills-chips-container">
+                  {selectedMajors.map((major) => (
+                    <div key={major} className="skill-chip">
+                      <span>{major}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveMajor(major)}
+                        className="skill-chip-remove"
+                        aria-label={`Remove ${major}`}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Majors Dropdown */}
+                <div className="skills-dropdown-container majors-dropdown-container">
+                  <button
+                    type="button"
+                    onClick={() => setShowMajorsDropdown(!showMajorsDropdown)}
+                    className="skills-dropdown-toggle"
+                  >
+                    {showMajorsDropdown ? 'Hide Majors' : 'Add Majors'}
+                  </button>
+                  
+                  {showMajorsDropdown && (
+                    <div className="skills-dropdown">
+                      {MAJORS_BY_CATEGORY.map((categoryGroup) => (
+                        <div key={categoryGroup.category} className="skills-category">
+                          <div className="skills-category-header">{categoryGroup.category}</div>
+                          <div className="skills-options">
+                            {categoryGroup.majors.map((major) => {
+                              const isSelected = selectedMajors.includes(major);
+                              return (
+                                <button
+                                  key={major}
+                                  type="button"
+                                  onClick={() => !isSelected && handleAddMajor(major)}
+                                  className={`skill-option ${isSelected ? 'selected' : ''}`}
+                                  disabled={isSelected}
+                                >
+                                  {major}
+                                  {isSelected && <span className="checkmark">✓</span>}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Custom Major Input */}
+                <form onSubmit={handleCustomMajorSubmit} className="custom-skill-form">
+                  <input
+                    type="text"
+                    value={customMajorInput}
+                    onChange={(e) => setCustomMajorInput(e.target.value)}
+                    className="form-input"
+                    placeholder="Type a custom major and press Enter"
+                    style={{ marginTop: '8px' }}
+                  />
+                </form>
               </div>
 
               <div className="form-group">

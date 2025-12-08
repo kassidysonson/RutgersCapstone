@@ -228,7 +228,23 @@ const BrowseProjects = () => {
     }
   };
 
-  const categories = ["Web Development", "Mobile Development", "Design", "Data Science", "Marketing"];
+  const categories = [
+    "Research & Academic Projects",
+    "Creative Media & Content Creation",
+    "Business & Entrepreneurship",
+    "Education & Tutoring",
+    "Engineering & Robotics",
+    "Natural Sciences & Lab Work",
+    "Health & Public Service",
+    "UX/UI & Product Design",
+    "Cybersecurity",
+    "Communications & Media Production",
+    "Web Development", 
+    "Mobile Development", 
+    "Design", 
+    "Data Science", 
+    "Marketing"
+  ];
   const skills = ["React", "Python", "JavaScript", "UI/UX Design", "Machine Learning", "Node.js", "Figma", "SQL"];
   const durations = ["1-2 months", "2-3 months", "3-6 months", "6+ months"];
 
