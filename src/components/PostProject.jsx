@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import './PostProject.css';
 import { supabase } from '../supabaseClient';
 
@@ -191,6 +191,9 @@ const AVAILABILITY_OPTIONS = [
 
 const PostProject = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const editProjectId = searchParams.get('projectId');
+  const isEditMode = Boolean(editProjectId);
   const [userId, setUserId] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
@@ -214,6 +217,7 @@ const PostProject = () => {
   const [customMajorInput, setCustomMajorInput] = useState('');
   const [showMajorsDropdown, setShowMajorsDropdown] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [initialProjectLoaded, setInitialProjectLoaded] = useState(false);
   
   useEffect(() => {
     const getUserId = async () => {
@@ -224,6 +228,84 @@ const PostProject = () => {
     };
     getUserId();
   }, []);
+
+  // Load existing project in edit mode
+  useEffect(() => {
+    const normalizeArray = (value) => {
+      if (!value) return [];
+      if (Array.isArray(value)) return value.filter((v) => v && String(v).trim());
+      if (typeof value === 'string') {
+        try {
+          const parsed = JSON.parse(value);
+          if (Array.isArray(parsed)) return parsed.filter((v) => v && String(v).trim());
+        } catch (_e) {
+          // ignore parse error
+        }
+        return value
+          .split(',')
+          .map((v) => v.replace(/[\[\]"']/g, '').trim())
+          .filter(Boolean);
+      }
+      return [];
+    };
+
+    const loadProject = async () => {
+      if (!editProjectId || !userId || initialProjectLoaded) return;
+
+      const { data, error } = await supabase
+        .from('projects')
+        .select(
+          'id, owner_id, title, description, company, budget, compensation, duration, experience_level, skills, academic_year, major, availability, is_urgent, category, location, expectations'
+        )
+        .eq('id', editProjectId)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error loading project:', error);
+        alert('Unable to load project for editing.');
+        navigate('/dashboard');
+        return;
+      }
+
+      if (!data) {
+        alert('Project not found.');
+        navigate('/dashboard');
+        return;
+      }
+
+      if (data.owner_id !== userId) {
+        alert('You can only edit your own projects.');
+        navigate('/dashboard');
+        return;
+      }
+
+      const normalizedSkills = normalizeArray(data.skills || data.expectations);
+      const normalizedMajors = normalizeArray(data.major);
+
+      setSelectedSkills(normalizedSkills);
+      setSelectedMajors(normalizedMajors);
+
+      setFormData({
+        title: data.title || '',
+        company: data.company || '',
+        description: data.description || '',
+        budget: data.budget || data.compensation || '',
+        duration: data.duration || '',
+        experienceLevel: data.experience_level || 'Beginner',
+        skills: normalizedSkills.join(','),
+        academicYear: data.academic_year || 'Any year',
+        major: normalizedMajors.join(','),
+        availability: data.availability || '',
+        isUrgent: Boolean(data.is_urgent),
+        category: data.category || '',
+        location: data.location || 'Remote'
+      });
+
+      setInitialProjectLoaded(true);
+    };
+
+    loadProject();
+  }, [editProjectId, userId, initialProjectLoaded, navigate]);
 
   // Close skills dropdown when clicking outside
   useEffect(() => {
@@ -354,9 +436,20 @@ const PostProject = () => {
         expectations: formData.skills // Keep for backward compatibility
       };
 
-      const { error } = await supabase
-        .from('projects')
-        .insert(projectData);
+      let error;
+      if (isEditMode) {
+        const { error: updateError } = await supabase
+          .from('projects')
+          .update(projectData)
+          .eq('id', editProjectId)
+          .eq('owner_id', userId);
+        error = updateError;
+      } else {
+        const { error: insertError } = await supabase
+          .from('projects')
+          .insert(projectData);
+        error = insertError;
+      }
 
       if (error) {
         console.error('Error posting project:', error);
@@ -365,7 +458,7 @@ const PostProject = () => {
         return;
       }
 
-      alert('Project posted successfully!');
+      alert(isEditMode ? 'Project updated successfully!' : 'Project posted successfully!');
       // Navigate back to dashboard
       if (userId) {
         navigate(`/dashboard/${userId}`);
@@ -734,7 +827,7 @@ const PostProject = () => {
             <div className="form-actions">
               <Link to={userId ? `/dashboard/${userId}` : "/dashboard"} className="btn-cancel">Cancel</Link>
               <button type="submit" className="btn-post" disabled={loading}>
-                {loading ? 'Posting...' : 'Post Project'}
+                {loading ? (isEditMode ? 'Updating...' : 'Posting...') : (isEditMode ? 'Update Project' : 'Post Project')}
               </button>
             </div>
           </form>
