@@ -12,6 +12,7 @@ const BrowseProjects = () => {
     category: [],
     skills: [],
     duration: [],
+    availability: [],
   });
 
   const [activeFilters, setActiveFilters] = useState([]);
@@ -61,18 +62,38 @@ const BrowseProjects = () => {
           applicationCounts[app.project_id] = (applicationCounts[app.project_id] || 0) + 1;
         });
 
+        // Helper to normalize skills to clean strings without quotes/brackets
+        const normalizeSkills = (value) => {
+          const clean = (s) => (s || '')
+            .replace(/[\[\]"']/g, '') // remove brackets/quotes
+            .split(',')               // split any embedded commas
+            .map(part => part.trim())
+            .filter(Boolean);
+
+          if (Array.isArray(value)) {
+            return value.flatMap(clean);
+          }
+
+          if (typeof value === 'string' && value.trim()) {
+            // Try JSON parse first
+            try {
+              const parsed = JSON.parse(value);
+              if (Array.isArray(parsed)) return parsed.flatMap(clean);
+            } catch (e) {
+              // fall through to manual handling
+            }
+            return clean(value);
+          }
+
+          return [];
+        };
+
         // Transform data to match the display format
         const formattedProjects = (projectsData || []).map(project => {
-          // Parse skills from skills column (comma-separated string), fallback to expectations
+          // Parse skills from skills column (array/JSON/string), fallback to expectations
           const skills = project.skills
-            ? (Array.isArray(project.skills)
-                ? project.skills.filter(s => s && s.trim())
-                : (typeof project.skills === 'string' && project.skills
-                    ? project.skills.split(',').map(s => s.trim()).filter(Boolean)
-                    : []))
-            : (project.expectations
-                ? project.expectations.split(',').map(s => s.trim()).filter(Boolean)
-                : []);
+            ? normalizeSkills(project.skills)
+            : normalizeSkills(project.expectations);
 
           // Format date as "Posted X days ago"
           const formatPostedDate = (dateString) => {
@@ -101,7 +122,8 @@ const BrowseProjects = () => {
             company: company,
             description: project.description,
             skills: skills,
-            duration: project.duration || 'Flexible',
+            duration: project.duration || 'Not specified',
+            availability: project.availability || 'Not specified',
             postedDate: formatPostedDate(project.created_at),
             applicants: applicationCounts[project.id] || 0,
             location: project.location || 'Remote',
@@ -247,6 +269,16 @@ const BrowseProjects = () => {
   ];
   const skills = ["React", "Python", "JavaScript", "UI/UX Design", "Machine Learning", "Node.js", "Figma", "SQL"];
   const durations = ["1-2 months", "2-3 months", "3-6 months", "6+ months"];
+  const availabilityOptions = [
+    "Not currently available",
+    "Up to 5 hours/week",
+    "5–10 hours/week",
+    "10–15 hours/week",
+    "15–20 hours/week",
+    "20+ hours/week",
+    "Flexible",
+    "Not specified"
+  ];
 
   const handleFilterChange = (filterType, value) => {
     setFilters(prev => {
@@ -279,6 +311,7 @@ const BrowseProjects = () => {
       category: [],
       skills: [],
       duration: [],
+      availability: [],
     });
     setActiveFilters([]);
   };
@@ -303,6 +336,13 @@ const BrowseProjects = () => {
       // Check duration
       if (filters.duration.length > 0) {
         if (!filters.duration.includes(project.duration)) {
+          return false;
+        }
+      }
+
+      // Check availability
+      if (filters.availability.length > 0) {
+        if (!filters.availability.includes(project.availability)) {
           return false;
         }
       }
@@ -391,6 +431,23 @@ const BrowseProjects = () => {
               </div>
             </div>
 
+            {/* Availability Filter */}
+            <div className="filter-section">
+              <h3 className="filter-label">Availability</h3>
+              <div className="filter-options">
+                {availabilityOptions.map(option => (
+                  <label key={option} className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={filters.availability.includes(option)}
+                      onChange={() => handleFilterChange('availability', option)}
+                    />
+                    <span className="checkbox-text">{option}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -437,6 +494,10 @@ const BrowseProjects = () => {
                     <div className="detail-item">
                       <span className="detail-label">Duration:</span>
                       <span className="detail-value">{project.duration}</span>
+                    </div>
+                    <div className="detail-item">
+                      <span className="detail-label">Availability:</span>
+                      <span className="detail-value">{project.availability}</span>
                     </div>
                     <div className="detail-item">
                       <span className="detail-label">Applicants:</span>
