@@ -59,13 +59,17 @@
 }
 
 .landing-logo {
-  font-size: 24px;
-  font-weight: 700;
-  color: #ffffff;
-  letter-spacing: -0.5px;
+  display: flex;
+  align-items: center;
   text-decoration: none;
   cursor: pointer;
   transition: opacity 0.2s;
+}
+
+.landing-logo-img {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
 }
 
 .landing-logo:hover {
@@ -221,8 +225,8 @@
     gap: 12px;
   }
 
-  .landing-logo {
-    font-size: 20px;
+  .landing-logo-img {
+    height: 32px;
   }
 
   .landing-header-actions {
@@ -274,8 +278,8 @@
     gap: 10px;
   }
 
-  .landing-logo {
-    font-size: 18px;
+  .landing-logo-img {
+    height: 28px;
   }
 
   .landing-header-actions {

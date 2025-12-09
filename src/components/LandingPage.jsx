@@ -122,7 +122,13 @@ const LandingPage = () => {
         {/* Header */}
         <header className="landing-header">
           <div className="landing-header-container">
-            <Link to="/" className="landing-logo">JoinUp</Link>
+            <Link to="/" className="landing-logo">
+              <img 
+                src="/assets/Rutgers Capstone Logo.png" 
+                alt="JoinUp Logo" 
+                className="landing-logo-img"
+              />
+            </Link>
             <div className="landing-header-actions">
               {!loading && session && userId ? (
                 <>
