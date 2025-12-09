@@ -60,6 +60,9 @@ const normalizePostedProjects = (rows = []) =>
     location: row.location || 'Remote',
     compensation: row.compensation || 'Not provided',
     created_at: row.created_at,
+    is_active: row.is_active !== undefined ? row.is_active : true,
+    max_hires: row.max_hires || null,
+    current_hires: row.current_hires || 0,
   }));
 
 const Dashboard = () => {
@@ -76,6 +79,9 @@ const Dashboard = () => {
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [applications, setApplications] = useState([]);
   const [loadingApplications, setLoadingApplications] = useState(false);
+  const [hiringApplication, setHiringApplication] = useState(null);
+  const [roleInput, setRoleInput] = useState('');
+  const [hiringLoading, setHiringLoading] = useState(false);
 
   useEffect(() => {
     let ignore = false;
@@ -138,7 +144,7 @@ const Dashboard = () => {
 
         const postedPromise = supabase
           .from('projects')
-          .select('id, title, description, expectations, location, compensation, created_at')
+          .select('id, title, description, expectations, location, compensation, created_at, is_active, max_hires, current_hires')
           .eq('owner_id', currentUser.id)
           .order('created_at', { ascending: false });
 
@@ -342,6 +348,105 @@ const Dashboard = () => {
   const handleCloseApplicantsModal = () => {
     setSelectedProjectId(null);
     setApplications([]);
+  };
+
+  const handleHireStudent = async (applicationId, projectId) => {
+    if (!roleInput.trim()) {
+      alert('Please enter a role for the student');
+      return;
+    }
+
+    setHiringLoading(true);
+    try {
+      // Update application status to 'hired' and set role
+      const { error: updateError } = await supabase
+        .from('applications')
+        .update({ 
+          status: 'hired',
+          role: roleInput.trim()
+        })
+        .eq('id', applicationId);
+
+      if (updateError) throw updateError;
+
+      // Increment current_hires for the project
+      const { data: projectData, error: projectError } = await supabase
+        .from('projects')
+        .select('current_hires')
+        .eq('id', projectId)
+        .single();
+
+      if (projectError) throw projectError;
+
+      const newHireCount = (projectData.current_hires || 0) + 1;
+
+      const { error: incrementError } = await supabase
+        .from('projects')
+        .update({ current_hires: newHireCount })
+        .eq('id', projectId);
+
+      if (incrementError) throw incrementError;
+
+      // Refresh applications list
+      await handleViewApplicants(projectId);
+      
+      // Refresh posted projects to update hire counts
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData?.session?.user) {
+        const { data: projectsData } = await supabase
+          .from('projects')
+          .select('id, title, description, expectations, location, compensation, created_at, is_active, max_hires, current_hires')
+          .eq('owner_id', sessionData.session.user.id)
+          .order('created_at', { ascending: false });
+        
+        if (projectsData) {
+          setPostedProjects(normalizePostedProjects(projectsData));
+        }
+      }
+
+      setHiringApplication(null);
+      setRoleInput('');
+      alert(`Student hired successfully as ${roleInput.trim()}!`);
+    } catch (err) {
+      console.error('Error hiring student:', err);
+      alert('Error hiring student: ' + (err.message || 'Please try again.'));
+    } finally {
+      setHiringLoading(false);
+    }
+  };
+
+  const handleCloseProject = async (projectId, projectTitle) => {
+    if (!window.confirm(`Are you sure you want to close "${projectTitle}"? This will stop accepting new applications.`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .update({ is_active: false })
+        .eq('id', projectId);
+
+      if (error) throw error;
+
+      // Refresh posted projects
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData?.session?.user) {
+        const { data: projectsData } = await supabase
+          .from('projects')
+          .select('id, title, description, expectations, location, compensation, created_at, is_active, max_hires, current_hires')
+          .eq('owner_id', sessionData.session.user.id)
+          .order('created_at', { ascending: false });
+        
+        if (projectsData) {
+          setPostedProjects(normalizePostedProjects(projectsData));
+        }
+      }
+
+      alert('Project closed successfully!');
+    } catch (err) {
+      console.error('Error closing project:', err);
+      alert('Error closing project: ' + (err.message || 'Please try again.'));
+    }
   };
 
   // Helper function to get initials
@@ -552,9 +657,14 @@ const Dashboard = () => {
                           <span className="applicants">{project.location || 'Remote'}</span>
                   </div>
                 </div>
-                      <div className="status-badge active">
-                        Active
+                      <div className={`status-badge ${project.is_active ? 'active' : 'closed'}`}>
+                        {project.is_active ? 'Active' : 'Closed'}
                 </div>
+                {project.max_hires && (
+                  <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+                    Hires: {project.current_hires || 0} / {project.max_hires}
+                  </div>
+                )}
               </div>
 
                     <div className="project-description">{project.description || 'No description yet.'}</div>
@@ -600,6 +710,15 @@ const Dashboard = () => {
                 >
                   Manage Project
                 </button>
+                {project.is_active && (
+                  <button 
+                    className="btn-secondary small" 
+                    onClick={() => handleCloseProject(project.id, project.title)}
+                    style={{ color: '#f59e0b', borderColor: '#f59e0b' }}
+                  >
+                    Close Project
+                  </button>
+                )}
                       <button 
                         className="btn-secondary small" 
                         onClick={() => handleDeleteProject(project.id, project.title)}
@@ -702,6 +821,11 @@ const Dashboard = () => {
                             <span className={`status-badge ${application.status || 'pending'}`}>
                               {(application.status || 'pending').charAt(0).toUpperCase() + (application.status || 'pending').slice(1)}
                             </span>
+                            {application.status === 'hired' && application.role && (
+                              <span className="role-badge" style={{ marginTop: '4px', display: 'block', fontSize: '12px', color: '#666' }}>
+                                Role: {application.role}
+                              </span>
+                            )}
               </div>
             </div>
 
@@ -778,6 +902,15 @@ const Dashboard = () => {
                         </div>
 
                         <div className="application-actions">
+                          {application.status !== 'hired' && (application.status === 'pending' || application.status === 'accepted') && (
+                            <button
+                              className="btn-primary small"
+                              onClick={() => setHiringApplication(application)}
+                              style={{ backgroundColor: '#10b981', borderColor: '#10b981' }}
+                            >
+                              Hire Student
+                            </button>
+                          )}
                           {applicant?.id ? (
                             <Link 
                               to={`/profile/${applicant.id}`} 
@@ -803,6 +936,66 @@ const Dashboard = () => {
           )}
         </div>
       </div>
+        </div>
+      )}
+
+      {/* Hiring Modal */}
+      {hiringApplication && (
+        <div className="applicants-modal-overlay" onClick={() => setHiringApplication(null)}>
+          <div className="applicants-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+            <div className="applicants-modal-header">
+              <h2>Hire Student</h2>
+              <button className="close-button" onClick={() => {
+                setHiringApplication(null);
+                setRoleInput('');
+              }}>×</button>
+            </div>
+
+            <div className="applicants-modal-content">
+              <div style={{ marginBottom: '20px' }}>
+                <p><strong>Student:</strong> {hiringApplication.applicant?.full_name || hiringApplication.applicant?.email?.split('@')[0] || 'Unknown'}</p>
+                <p><strong>Project:</strong> {hiringApplication.project?.title || 'Unknown Project'}</p>
+              </div>
+
+              <div className="form-group" style={{ marginBottom: '20px' }}>
+                <label className="form-label" style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                  Assign Role <span style={{ color: '#ef4444' }}>*</span>
+                </label>
+                <input
+                  type="text"
+                  value={roleInput}
+                  onChange={(e) => setRoleInput(e.target.value)}
+                  placeholder="e.g., Frontend Developer, Data Analyst, Content Writer"
+                  className="form-input"
+                  style={{ width: '100%', padding: '10px', border: '1px solid #d1d1d1', borderRadius: '6px' }}
+                  autoFocus
+                />
+                <p style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+                  Enter the role or position title for this student
+                </p>
+              </div>
+
+              <div className="application-actions" style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                <button
+                  className="btn-secondary small"
+                  onClick={() => {
+                    setHiringApplication(null);
+                    setRoleInput('');
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="btn-primary small"
+                  onClick={() => handleHireStudent(hiringApplication.id, hiringApplication.project_id)}
+                  disabled={hiringLoading || !roleInput.trim()}
+                  style={{ backgroundColor: '#10b981', borderColor: '#10b981' }}
+                >
+                  {hiringLoading ? 'Hiring...' : 'Confirm Hire'}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </section>

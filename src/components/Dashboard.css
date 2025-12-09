@@ -430,6 +430,18 @@
   border-color: #fecaca;
 }
 
+.status-badge.closed {
+  background: #f3f4f6;
+  color: #6b7280;
+  border-color: #d1d5db;
+}
+
+.status-badge.hired {
+  background: #dbeafe;
+  color: #1e40af;
+  border-color: #93c5fd;
+}
+
 .applicant-bio {
   margin: 16px 0;
   padding: 12px;
