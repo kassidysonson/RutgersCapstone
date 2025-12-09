@@ -184,7 +184,8 @@ const Dashboard = () => {
           fetchOptional(appliedPromise, (rows) =>
             rows.map((row) => ({
               id: row.id ?? row.project?.id ?? `application-${row.project_id}`,
-              status: 'Applied',
+              status: row.status || 'pending',
+              role: row.role || null,
               progress: 0,
               updated_at: row.created_at,
               project: row.project || null,
@@ -558,9 +559,24 @@ const Dashboard = () => {
                             <span className="applied">{formatDate(entry.updated_at)}</span>
                   </div>
                 </div>
-                        <div className={`status-badge ${entry.status === 'Completed' ? 'completed' : 'inprogress'}`}>
-                          {entry.status}
+                        <div className={`status-badge ${
+                          entry.status === 'hired' ? 'hired' :
+                          entry.status === 'accepted' ? 'accepted' :
+                          entry.status === 'rejected' ? 'rejected' :
+                          entry.status === 'withdrawn' ? 'withdrawn' :
+                          'pending'
+                        }`}>
+                          {entry.status === 'hired' ? 'Hired' :
+                           entry.status === 'accepted' ? 'Accepted' :
+                           entry.status === 'rejected' ? 'Rejected' :
+                           entry.status === 'withdrawn' ? 'Withdrawn' :
+                           'Pending'}
                 </div>
+                {entry.status === 'hired' && entry.role && (
+                  <div style={{ fontSize: '12px', color: '#666', marginTop: '4px', fontWeight: '500' }}>
+                    Role: {entry.role}
+                  </div>
+                )}
               </div>
 
               <div className="project-meta">
