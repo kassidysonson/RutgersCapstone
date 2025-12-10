@@ -64,6 +64,7 @@
   text-decoration: none;
   cursor: pointer;
   transition: opacity 0.2s;
+  margin-top: 20px;
 }
 
 .landing-logo-img {
