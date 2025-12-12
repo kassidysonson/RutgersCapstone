@@ -143,28 +143,8 @@ const Header = () => {
           </Link>
         </nav>
 
-        {/* Search Bar */}
-        <div className="search-container">
-          <div className="search-bar">
-            <svg
-              className="search-icon"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.35-4.35"></path>
-            </svg>
-            <input
-              type="text"
-              placeholder="Search skills, projects, or students..."
-              className="search-input"
-            />
-          </div>
-        </div>
+        {/* Empty space where search bar used to be */}
+        <div className="search-container"></div>
 
         {/* Dashboard Link */}
         {userId && (
