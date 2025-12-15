@@ -158,7 +158,7 @@ const LandingPage = () => {
           <div className="landing-content-wrapper">
             <div className="landing-left">
               <h1 className="landing-headline">
-                Work on Projects That Matter
+                Build What Matters
               </h1>
               <p className="landing-description">
                 Helping students connect, collaborate, and grow through real project experience.
