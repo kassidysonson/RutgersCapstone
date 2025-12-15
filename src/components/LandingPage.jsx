@@ -161,7 +161,7 @@ const LandingPage = () => {
                 Build What Matters
               </h1>
               <p className="landing-description">
-                Helping students connect, collaborate, and grow through real project experience.
+                Helping students connect <br /> and collaborate through real project experience.
               </p>
               {!loading && session && userId ? (
                 <Link to={`/dashboard/${userId}`}>
