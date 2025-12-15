@@ -158,10 +158,10 @@ const LandingPage = () => {
           <div className="landing-content-wrapper">
             <div className="landing-left">
               <h1 className="landing-headline">
-                Become a Innovator
+                Work on Projects That Matter
               </h1>
               <p className="landing-description">
-                Your Journey Starts Here
+                Helping students connect, collaborate, and grow through real project experience.
               </p>
               {!loading && session && userId ? (
                 <Link to={`/dashboard/${userId}`}>
